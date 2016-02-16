@@ -1,7 +1,7 @@
 PROGRAM test;
   VAR a, b, a, c, s;
 
-  PROCEDURE proc1 (REF a, REF b,REF c);
+  PROCEDURE proc (REF a, REF b,REF c);
     VAR q, asda, v;
 
         PROCEDURE innerProc (REF a, REF b,REF c);
@@ -35,6 +35,17 @@ PROGRAM test;
 	  BEGIN
 	     a := 4;
 	  END;
+    END;
+
+  PROCEDURE read;		!showcase procedure with no params
+    BEGIN
+	READ( x, b, a, q, r);	!read keyword
+    END;	 
+
+  PROCEDURE write( a, b);
+    BEGIN
+	c := a + b;
+	WRITE( c );	
     END;
 
   BEGIN

@@ -1,7 +1,7 @@
   1 PROGRAM test;
   2   VAR a, b, a, c, s;
   3 
-  4   PROCEDURE proc1 (REF a, REF b,REF c);
+  4   PROCEDURE proc (REF a, REF b,REF c);
   5     VAR q, asda, v;
   6 
   7         PROCEDURE innerProc (REF a, REF b,REF c);
@@ -37,13 +37,24 @@
  37           END;
  38     END;
  39 
- 40   BEGIN
- 41     IF a <= 4 THEN
- 42        BEGIN
- 43          a := a + 1;
- 44        END
- 45     ELSE
- 46        BEGIN
- 47          a := a - 1;
- 48        END;
- 49   END.
+ 40   PROCEDURE read;               !showcase procedure with no params
+ 41     BEGIN
+ 42         READ( x, b, a, q, r);   !read keyword
+ 43     END;         
+ 44 
+ 45   PROCEDURE write( a, b);
+ 46     BEGIN
+ 47         c := a + b;
+ 48         WRITE( c );     
+ 49     END;
+ 50 
+ 51   BEGIN
+ 52     IF a <= 4 THEN
+ 53        BEGIN
+ 54          a := a + 1;
+ 55        END
+ 56     ELSE
+ 57        BEGIN
+ 58          a := a - 1;
+ 59        END;
+ 60   END.

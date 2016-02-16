@@ -2,31 +2,14 @@
 /*                                                                          */
 /*       parser1                                                            */
 /*                                                                          */
+/*       Author: Ian Lodovica (13131567)                                    */
 /*                                                                          */
-/*       Group Members:          ID numbers                                 */
-/*                                                                          */
-/*           John Doe            12345678                                   */
-/*           Jane Murphy         23456789                                   */
-/*           Anthony N. Other    12345679                                   */
-/*                                                                          */
-/*                                                                          */
-/*       Currently just a copy of "smallparser.c".  To create "parser1.c",  */
-/*       modify this source to reflect the CPL grammar.                     */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-/*                                                                          */
-/*       smallparser                                                        */
 /*                                                                          */
 /*       An illustration of the use of the character handler and scanner    */
 /*       in a parser for the language                                       */
 /*                                                                          */
-/*       <Program>     :== "BEGIN" { <Statement> ";" } "END" "."            */
-/*       <Statement>   :== <Identifier> ":=" <Expression>                   */
-/*       <Expression>  :== <Identifier> | <IntConst>                        */
-/*                                                                          */
-/*                                                                          */
-/*       Note - <Identifier> and <IntConst> are provided by the scanner     */
-/*       as tokens IDENTIFIER and INTCONST respectively.                    */
 /*                                                                          */
 /*       Although the listing file generator has to be initialised in       */
 /*       this program, full listing files cannot be generated in the        */
@@ -90,8 +73,9 @@ PRIVATE void ParseWhileStatement( void );
 PRIVATE void ParseBooleanExpression( void );
 PRIVATE void ParseRelOp( void );
 PRIVATE void ParseIfStatement( void );
+PRIVATE void ParseReadStatement( void );
+PRIVATE void ParseWriteStatement( void );
 
-PRIVATE int isStatement();
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Main: Smallparser entry point.  Sets up parser globals (opens input and */
@@ -175,7 +159,9 @@ PRIVATE void ParseParameterList( void )
 
 PRIVATE void ParseFormalParameter( void )
 {
-  Accept( REF );
+  if( CurrentToken.code == REF ){
+    Accept( REF );
+  }
   Accept( IDENTIFIER );
 }
 
@@ -183,7 +169,8 @@ PRIVATE void ParseBlock( void )
 {
   Accept( BEGIN );
   
-  while( isStatement() ){
+  while( CurrentToken.code == IDENTIFIER || CurrentToken.code == WHILE || CurrentToken.code == IF
+      || CurrentToken.code == READ || CurrentToken.code == WRITE ){
     ParseStatement();
     Accept( SEMICOLON );
   }
@@ -211,9 +198,42 @@ PRIVATE void ParseStatement( void )
     ParseWhileStatement();
   }else if( CurrentToken.code == IF ){
     ParseIfStatement();
+  }else if( CurrentToken.code == READ ){
+    ParseReadStatement();
+  }else if( CurrentToken.code == WRITE ){
+    ParseWriteStatement();
   }else{
     ParseSimpleStatement();
   }
+}
+
+PRIVATE void ParseWriteStatement( void )
+{
+  Accept( WRITE );
+  Accept( LEFTPARENTHESIS );
+  
+  ParseExpression();
+  
+  while( CurrentToken.code == COMMA ){
+    Accept( COMMA );
+    ParseExpression();
+  }
+
+  Accept( RIGHTPARENTHESIS );
+}
+
+PRIVATE void ParseReadStatement( void )
+{
+  Accept( READ );
+  Accept( LEFTPARENTHESIS );
+  Accept( IDENTIFIER );
+
+  while( CurrentToken.code == COMMA ){
+    Accept( COMMA );
+    Accept( IDENTIFIER );
+  }
+  
+  Accept( RIGHTPARENTHESIS );
 }
 
 PRIVATE void ParseIfStatement( void )
@@ -492,12 +512,4 @@ PRIVATE void ReadToEndOfFile( void )
         Error( "Parsing ends here in this program\n", CurrentToken.pos );
         while ( CurrentToken.code != ENDOFINPUT )  CurrentToken = GetToken();
     }
-}
-
-PRIVATE int isStatement( void )
-{
-  if( CurrentToken.code == IDENTIFIER || CurrentToken.code == WHILE || CurrentToken.code == IF){
-    return 1;
-  }
-  return 0;
 }
