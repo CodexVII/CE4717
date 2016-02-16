@@ -82,6 +82,8 @@ PRIVATE void ParseProcCallList( void );
 PRIVATE void ParseActualParameter( void );
 PRIVATE void ParseCompoundTerm( void );
 PRIVATE void ParseAddOp( void );
+PRIVATE void ParseTerm( void );
+PRIVATE void ParseSubTerm( void );
 
 PRIVATE int isStatement();
 /*--------------------------------------------------------------------------*/
@@ -242,6 +244,8 @@ PRIVATE void ParseActualParameter( void )
 {
   if( CurrentToken.code == IDENTIFIER ){
     Accept( IDENTIFIER );
+  }else{
+    ParseExpression();
   }
   /* else if (expression) parse */
 }
@@ -268,7 +272,7 @@ PRIVATE void ParseActualParameter( void )
 PRIVATE void ParseExpression( void )
 {
   ParseCompoundTerm();
-  while( CurrenToken.code == ADD || CurrentToken.code == SUBTRACT ){
+  while( CurrentToken.code == ADD || CurrentToken.code == SUBTRACT ){
     ParseAddOp();
     ParseCompoundTerm();
   }
@@ -276,7 +280,32 @@ PRIVATE void ParseExpression( void )
 
 PRIVATE void ParseCompoundTerm( void )
 {
-  
+  ParseTerm();
+}
+
+PRIVATE void ParseTerm( void )
+{
+  /* possibly meant to be hiphen - */
+  if( CurrentToken.code == SUBTRACT ){
+    printf("Parsed Term\n");
+    Accept( SUBTRACT );
+  }
+  ParseSubTerm();
+}
+
+PRIVATE void ParseSubTerm(){
+  if( CurrentToken.code == IDENTIFIER ){
+    printf("Parsed Identifier\n");
+    Accept( IDENTIFIER );
+  }else if( CurrentToken.code == INTCONST ){
+    printf("Parsed int\n");
+    Accept( INTCONST );
+  }else if( CurrentToken.code == LEFTPARENTHESIS ){
+    printf("gotcha\n");
+    Accept( LEFTPARENTHESIS );
+    ParseExpression();
+    Accept( RIGHTPARENTHESIS );
+  }
 }
 
 PRIVATE void ParseAddOp( void )
