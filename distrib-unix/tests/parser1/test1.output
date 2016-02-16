@@ -11,23 +11,26 @@
  11             a(param1, param2);
  12             b(param1, param2, param3);
  13             noparam();
- 14             a(-b);  !'-' denotes term?
- 15             a(--b); !considered legal but should it be?
+ 14             a(-b);              !'-' denotes term?
+ 15             a(--b);             !considered legal but should it be?
  16             a(-1);
                 
  17             exp(-(expression)); !term with expression subterm as actualPara 18 meter
  19 
  20             addOp(-a + -b);     !compound term added to compound term
- 21           END;
- 22 
- 23     BEGIN
- 24     END;
- 25 
- 26   PROCEDURE proc2 (REF a, REF b,REF c);
- 27     VAR name, date, age;
+ 21             multOp(-a*-b);
+ 22           END;
+ 23 
+ 24     BEGIN
+ 25         y := mx + c;
+ 26         a;                      !null string
+ 27     END;
  28 
- 29     BEGIN
- 30     END;
+ 29   PROCEDURE proc2 (REF a, REF b,REF c);
+ 30     VAR name, date, age;
  31 
- 32   BEGIN
- 33   END.
+ 32     BEGIN
+ 33     END;
+ 34 
+ 35   BEGIN
+ 36   END.

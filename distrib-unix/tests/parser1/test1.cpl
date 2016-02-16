@@ -11,16 +11,19 @@ PROGRAM test;
 	    a(param1, param2);
 	    b(param1, param2, param3);
 	    noparam();
-	    a(-b);  !'-' denotes term?
-	    a(--b); !considered legal but should it be?
+	    a(-b);		!'-' denotes term?
+	    a(--b); 	 	!considered legal but should it be?
 	    a(-1);
 	    
 	    exp(-(expression));	!term with expression subterm as actualParameter
 
 	    addOp(-a + -b);	!compound term added to compound term
+	    multOp(-a*-b);
 	  END;
 
     BEGIN
+	y := mx + c;
+	a;			!null string
     END;
 
   PROCEDURE proc2 (REF a, REF b,REF c);
