@@ -276,7 +276,7 @@ PRIVATE void ParseExpression( void )
 
 PRIVATE void ParseCompoundTerm( void )
 {
-  
+  ParseTerm
 }
 
 PRIVATE void ParseAddOp( void )

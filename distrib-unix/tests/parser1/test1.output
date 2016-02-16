@@ -8,21 +8,19 @@
   8           VAR name, date, age;
   9 
  10           BEGIN
- 11             a;
- 12           END
- 13           ;
- 14 
- 15     BEGIN
- 16     END
- 17   ;
+ 11             a(param1, param2);
+ 12             b(param1, param2, param3);
+ 13             noparam();
+ 14           END;
+ 15 
+ 16     BEGIN
+ 17     END;
  18 
  19   PROCEDURE proc2 (REF a, REF b,REF c);
  20     VAR name, date, age;
  21 
  22     BEGIN
- 23     END
- 24   ;
- 25 
- 26   BEGIN
- 27   END
- 28 .
+ 23     END;
+ 24 
+ 25   BEGIN
+ 26   END.

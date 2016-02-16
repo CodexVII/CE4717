@@ -8,21 +8,19 @@ PROGRAM test;
        	  VAR name, date, age;
 
     	  BEGIN
-	    a;
-	  END
-	  ;
+	    a(param1, param2);
+	    b(param1, param2, param3);
+	    noparam();
+	  END;
 
     BEGIN
-    END
-  ;
+    END;
 
   PROCEDURE proc2 (REF a, REF b,REF c);
     VAR name, date, age;
 
     BEGIN
-    END
-  ;
+    END;
 
   BEGIN
-  END
-.
+  END.
