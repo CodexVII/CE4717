@@ -19,18 +19,31 @@
  19 
  20             addOp(-a + -b);     !compound term added to compound term
  21             multOp(-a*-b);
- 22           END;
- 23 
- 24     BEGIN
- 25         y := mx + c;
- 26         a;                      !null string
- 27     END;
- 28 
- 29   PROCEDURE proc2 (REF a, REF b,REF c);
- 30     VAR name, date, age;
- 31 
- 32     BEGIN
- 33     END;
- 34 
- 35   BEGIN
- 36   END.
+ 22             notAlphaNum(-);
+ 23           END;
+ 24 
+ 25     BEGIN
+ 26         y := mx + c;
+ 27         a;                      !null string
+ 28     END;
+ 29 
+ 30   PROCEDURE proc2 (REF a, REF b,REF c);
+ 31     VAR name, date, age;
+ 32 
+ 33     BEGIN
+ 34         WHILE a = b DO
+ 35           BEGIN
+ 36              a := 4;
+ 37           END;
+ 38     END;
+ 39 
+ 40   BEGIN
+ 41     IF a <= 4 THEN
+ 42        BEGIN
+ 43          a := a + 1;
+ 44        END
+ 45     ELSE
+ 46        BEGIN
+ 47          a := a - 1;
+ 48        END;
+ 49   END.

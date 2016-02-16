@@ -86,6 +86,10 @@ PRIVATE void ParseTerm( void );
 PRIVATE void ParseSubTerm( void );
 PRIVATE void ParseMultOp( void );
 PRIVATE void ParseAssignment( void );
+PRIVATE void ParseWhileStatement( void );
+PRIVATE void ParseBooleanExpression( void );
+PRIVATE void ParseRelOp( void );
+PRIVATE void ParseIfStatement( void );
 
 PRIVATE int isStatement();
 /*--------------------------------------------------------------------------*/
@@ -152,7 +156,6 @@ PRIVATE void ParseProcDeclaration( void )
     ParseProcDeclaration();
   }
   
-  /*Skip down to block */
   ParseBlock();
   Accept( SEMICOLON );
 }
@@ -204,8 +207,25 @@ PRIVATE void ParseDeclarations( void )
 
 PRIVATE void ParseStatement( void )
 {
-  if( CurrentToken.code == IDENTIFIER ){
+  if( CurrentToken.code == WHILE ){
+    ParseWhileStatement();
+  }else if( CurrentToken.code == IF ){
+    ParseIfStatement();
+  }else{
     ParseSimpleStatement();
+  }
+}
+
+PRIVATE void ParseIfStatement( void )
+{
+  Accept( IF );
+  ParseBooleanExpression();
+  Accept( THEN );
+  ParseBlock();
+  
+  if( CurrentToken.code == ELSE ){
+    Accept( ELSE );
+    ParseBlock();
   }
 }
 
@@ -215,6 +235,42 @@ PRIVATE void ParseSimpleStatement( void )
   ParseRestOfStatement();
 }
 
+PRIVATE void ParseWhileStatement( void )
+{
+  Accept( WHILE );
+  ParseBooleanExpression();
+  Accept( DO );
+  ParseBlock();
+}
+
+PRIVATE void ParseBooleanExpression( void )
+{
+  ParseExpression();
+  ParseRelOp();
+  ParseExpression();
+}
+
+PRIVATE void ParseRelOp( void )
+{
+  switch( CurrentToken.code ){
+  case EQUALITY:
+    Accept( EQUALITY );
+    break;
+  case LESSEQUAL:
+    Accept( LESSEQUAL );
+    break;
+  case GREATEREQUAL:
+    Accept( GREATEREQUAL );
+    break;
+  case LESS:
+    Accept( LESS );
+    break;
+  case GREATER:
+    Accept( GREATER );
+    break;
+  }
+}
+
 PRIVATE void ParseRestOfStatement( void )
 {
   if( CurrentToken.code == LEFTPARENTHESIS ){
@@ -222,9 +278,8 @@ PRIVATE void ParseRestOfStatement( void )
   }else if( CurrentToken.code == ASSIGNMENT ){
     ParseAssignment();
   }
-  /* parseProcCallList or
-     Assignment or
-     null string*/
+
+  /* do nothing on null string */
 }
 
 PRIVATE void ParseProcCallList( void )
@@ -242,7 +297,7 @@ PRIVATE void ParseProcCallList( void )
 }
 
 /*
-  if variable can only be identifier NOT integer constant
+  variable can only be identifier NOT integer constant
  */
 PRIVATE void ParseActualParameter( void )
 {
@@ -251,27 +306,7 @@ PRIVATE void ParseActualParameter( void )
   }else{
     ParseExpression();
   }
-  /* else if (expression) parse */
 }
-/*--------------------------------------------------------------------------*/
-/*                                                                          */
-/*  ParseExpression implements:                                             */
-/*                                                                          */
-/*       <Expression>  :== <Identifier> | <IntConst>                        */
-/*                                                                          */
-/*       Note that <Identifier> and <IntConst> are handled by the scanner   */
-/*       and are returned as tokens IDENTIFER and INTCONST respectively.    */
-/*                                                                          */
-/*                                                                          */
-/*    Inputs:       None                                                    */
-/*                                                                          */
-/*    Outputs:      None                                                    */
-/*                                                                          */
-/*    Returns:      Nothing                                                 */
-/*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
-/*                                                                          */
-/*--------------------------------------------------------------------------*/
 
 PRIVATE void ParseExpression( void )
 {
@@ -298,13 +333,15 @@ PRIVATE void ParseAssignment( void )
   ParseExpression();
 }
 
+/* runs fine even with this function's body  commented out */
+/* a(-b) still considered legal by compiler */
 PRIVATE void ParseTerm( void )
 {
-  /* possibly meant to be hiphen - */
+  /*possibly meantto be hiphen - */
   if( CurrentToken.code == SUBTRACT ){
     Accept( SUBTRACT );
   }
-  ParseSubTerm();
+  ParseSubTerm();  
 }
 
 PRIVATE void ParseSubTerm(){
@@ -459,7 +496,7 @@ PRIVATE void ReadToEndOfFile( void )
 
 PRIVATE int isStatement( void )
 {
-  if( CurrentToken.code == IDENTIFIER ){
+  if( CurrentToken.code == IDENTIFIER || CurrentToken.code == WHILE || CurrentToken.code == IF){
     return 1;
   }
   return 0;

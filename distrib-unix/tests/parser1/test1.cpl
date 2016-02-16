@@ -19,6 +19,7 @@ PROGRAM test;
 
 	    addOp(-a + -b);	!compound term added to compound term
 	    multOp(-a*-b);
+	    notAlphaNum(-);
 	  END;
 
     BEGIN
@@ -30,7 +31,19 @@ PROGRAM test;
     VAR name, date, age;
 
     BEGIN
+	WHILE a = b DO
+	  BEGIN
+	     a := 4;
+	  END;
     END;
 
   BEGIN
+    IF a <= 4 THEN
+       BEGIN
+	 a := a + 1;
+       END
+    ELSE
+       BEGIN
+	 a := a - 1;
+       END;
   END.
