@@ -1,3 +1,28 @@
   1 PROGRAM test;
   2   VAR a, b, a, c, s;
-  3 .
+  3 
+  4   PROCEDURE proc1 (REF a, REF b,REF c);
+  5     VAR q, asda, v;
+  6 
+  7         PROCEDURE innerProc (REF a, REF b,REF c);
+  8           VAR name, date, age;
+  9 
+ 10           BEGIN
+ 11             a;
+ 12           END
+ 13           ;
+ 14 
+ 15     BEGIN
+ 16     END
+ 17   ;
+ 18 
+ 19   PROCEDURE proc2 (REF a, REF b,REF c);
+ 20     VAR name, date, age;
+ 21 
+ 22     BEGIN
+ 23     END
+ 24   ;
+ 25 
+ 26   BEGIN
+ 27   END
+ 28 .

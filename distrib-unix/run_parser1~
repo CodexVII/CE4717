@@ -1,0 +1,8 @@
+#!/bin/bash
+#script that quickly launches the parser1 file if it exists
+#file paths are set up in this case
+#opens the file output after running
+
+make parser1
+./parser1 tests/parser1/test1.cpl tests/parser1/test1.output
+emacs tests/parser1/test1.output&

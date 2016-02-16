@@ -58,7 +58,6 @@ PRIVATE TOKEN  CurrentToken;       /*  Parser lookahead token.  Updated by  */
                                    /*  routine Accept (below).  Must be     */
                                    /*  initialised before parser starts.    */
 
-
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Function prototypes                                                     */
@@ -74,7 +73,12 @@ PRIVATE void ReadToEndOfFile( void );
 
 PRIVATE void ParseDeclarations( void );
 PRIVATE void ParseProcDeclaration( void );
+PRIVATE void ParseBlock( void );
+PRIVATE void ParseParameterList( void );
+PRIVATE void ParseFormalParameter( void );
+PRIVATE void ParseSimpleStatement( void );
 
+PRIVATE int isStatement();
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Main: Smallparser entry point.  Sets up parser globals (opens input and */
@@ -98,7 +102,6 @@ PUBLIC int main ( int argc, char *argv[] )
         return EXIT_FAILURE;
 }
 
-
 PRIVATE void ParseProgram( void )
 {
     Accept( PROGRAM );
@@ -113,12 +116,12 @@ PRIVATE void ParseProgram( void )
       ParseProcDeclaration();
     }
     
-    while ( CurrentToken.code == IDENTIFIER )  {
+    while( CurrentToken.code == IDENTIFIER )  {
         ParseStatement();
         Accept( SEMICOLON );
     }
 
-    
+    ParseBlock();
     Accept( ENDOFPROGRAM );     /* Token "." has name ENDOFPROGRAM          */
 }
 
@@ -126,8 +129,56 @@ PRIVATE void ParseProcDeclaration( void )
 {
   Accept( PROCEDURE );
   Accept( IDENTIFIER );
+  
+  if( CurrentToken.code == LEFTPARENTHESIS ){
+    ParseParameterList();
+  }
+  Accept( SEMICOLON );
+
+  if( CurrentToken.code == VAR ){
+    ParseDeclarations();
+  }
+  
+  while( CurrentToken.code == PROCEDURE ){
+    ParseProcDeclaration();
+  }
+  
+  /*Skip down to block */
+  ParseBlock();
+  Accept( SEMICOLON );
 }
 
+PRIVATE void ParseParameterList( void )
+{
+  Accept( LEFTPARENTHESIS );  
+  ParseFormalParameter();
+
+  while( CurrentToken.code == COMMA ){
+    Accept( COMMA );
+    ParseFormalParameter();
+  }
+  
+  Accept( RIGHTPARENTHESIS );
+}
+
+PRIVATE void ParseFormalParameter( void )
+{
+  Accept( REF );
+  Accept( IDENTIFIER );
+}
+
+PRIVATE void ParseBlock( void )
+{
+  Accept( BEGIN );
+  
+  while( isStatement() ){
+    ParseStatement();
+    Accept( SEMICOLON );
+  }
+
+  /* skip to end of block  */
+  Accept( END );
+}
 
 PRIVATE void ParseDeclarations( void )
 {
@@ -142,32 +193,17 @@ PRIVATE void ParseDeclarations( void )
   Accept( SEMICOLON );
 }
 
-
-/*--------------------------------------------------------------------------*/
-/*                                                                          */
-/*  ParseStatement implements:                                              */
-/*                                                                          */
-/*       <Statement>   :== <Identifier> ":=" <Expression>                   */
-/*                                                                          */
-/*                                                                          */
-/*    Inputs:       None                                                    */
-/*                                                                          */
-/*    Outputs:      None                                                    */
-/*                                                                          */
-/*    Returns:      Nothing                                                 */
-/*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
-/*                                                                          */
-/*--------------------------------------------------------------------------*/
-
 PRIVATE void ParseStatement( void )
 {
-    Accept( IDENTIFIER );
-    Accept( ASSIGNMENT );       /* ":=" has token name ASSIGNMENT.          */ 
-    ParseExpression();
+  if( CurrentToken.code == IDENTIFIER ){
+    ParseSimpleStatement();
+  }
 }
 
-
+PRIVATE void ParseSimpleStatement( void )
+{
+  Accept( IDENTIFIER );
+}
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  ParseExpression implements:                                             */
@@ -315,4 +351,12 @@ PRIVATE void ReadToEndOfFile( void )
         Error( "Parsing ends here in this program\n", CurrentToken.pos );
         while ( CurrentToken.code != ENDOFINPUT )  CurrentToken = GetToken();
     }
+}
+
+PRIVATE int isStatement( void )
+{
+  if( CurrentToken.code == IDENTIFIER ){
+    return 1;
+  }
+  return 0;
 }
