@@ -1,0 +1,10 @@
+  1 BEGIN
+  2    A := 20;
+  3    B = C;
+         ^
+Syntax: Expected :=, got =
+
+         ^
+Parsing ends here in this program
+
+  4 END.
