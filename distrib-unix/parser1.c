@@ -577,11 +577,18 @@ PRIVATE void ParseProcCallList( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseActualParameter( void )
 {
-  if( CurrentToken.code == IDENTIFIER ){
-    Accept( IDENTIFIER );
-  }else{
-    ParseExpression();
-  }
+  /* parse expression or identifier? 
+     from how the language is setup an expression seems to be a superset
+     of an identifier so we might be able to just always accept an expression
+     here.
+   */
+  ParseExpression();
+  
+  /* if( CurrentToken.code == IDENTIFIER ){  */
+  /*   Accept( IDENTIFIER ); */
+  /* }else{ */
+  /*   ParseExpression(); */
+  /* } */
 }
 
 /*--------------------------------------------------------------------------*/
