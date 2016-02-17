@@ -92,7 +92,7 @@ PUBLIC int main ( int argc, char *argv[] )
         ParseProgram();
         fclose( InputFile );
         fclose( ListFile );
-	printf("ok\n");
+	printf("valid\n");
         return  EXIT_SUCCESS;
     }
     else 
