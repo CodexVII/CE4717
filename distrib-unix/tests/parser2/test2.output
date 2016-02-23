@@ -1,17 +1,28 @@
-  1 PROGRAM abc;
-  2 
-  3 !This should call the ParseTerm function to accept the '-' character
-  4 !SubTerm should then be called to accept the identifier 'b'
-  5 BEGIN
-  6   IF  x > a THEN
-  7   END;
+  1 PROGRAM errors;
+  2 !Testing multiple errors in a file while parsing
+  3 PROCEDURE errorMe ( REF a, b c );
+                                 ^
+Syntax: Expected ), got Identifier
+
+  4   VAR d, e, f;
+  5   BEGIN
+  6 
+  7   .
+      ^
+Syntax: Expected END, got .
+
+  8 
+  9 BEGIN
+ 10   IF  x > a THEN
+ 11       
+ 12   END;
+ 13   
+ 14   IF a > x THEN
+      ^
+Syntax: Expected BEGIN, got IF
+
+ 15   END;
       ^
 Syntax: Expected BEGIN, got END
 
-  8   
-  9   IF a > x THEN
- 10   END;
-      ^
-Syntax: Expected BEGIN, got END
-
- 11 END.
+ 16 END.

@@ -1,9 +1,14 @@
-PROGRAM abc;
+PROGRAM errors;
+!Testing multiple errors in a file while parsing
+PROCEDURE errorMe ( REF a, b c );
+  VAR d, e, f;
+  BEGIN
 
-!This should call the ParseTerm function to accept the '-' character
-!SubTerm should then be called to accept the identifier 'b'
+  .
+
 BEGIN
   IF  x > a THEN
+      
   END;
   
   IF a > x THEN
