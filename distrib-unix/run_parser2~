@@ -1,9 +1,9 @@
 #!/bin/bash
-#script that quickly launches the parser2 file if it exists
+#script that quickly launches the parser1 file if it exists
 #file paths are set up in this case
 #opens the file output after running
 
-make parser1
+make parser2
 if (($? == 0)); then
     if(($1 == 0)); then
 	./parser1 tests/parser1/test1.cpl tests/parser1/test1.output

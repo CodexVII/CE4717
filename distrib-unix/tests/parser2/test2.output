@@ -1,0 +1,22 @@
+  1 PROGRAM abc;
+  2 
+  3 !This should call the ParseTerm function to accept the '-' character
+  4 !SubTerm should then be called to accept the identifier 'b'
+  5 BEGIN
+  6   IF  x > a THEN
+  7   END;
+      ^
+Syntax: Expected BEGIN, got END
+
+  8   
+  9   IF a > x THEN
+ 10   END;
+      ^
+Syntax: Expected BEGIN, got END
+
+    ^
+Syntax: Expected END, got End of File
+
+    ^
+Syntax: Expected ., got End of File
+

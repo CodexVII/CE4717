@@ -1,0 +1,28 @@
+PROGRAM test;
+  VAR a, b, a, c, s;
+
+  PROCEDURE proc1 (REF a, REF b,REF c);
+    VAR q, asda, v;
+
+        PROCEDURE innerProc (REF a, REF b,REF c);
+       	  VAR name, date, age;
+
+    	  BEGIN
+	    a;
+	  END
+	  ;
+
+    BEGIN
+    END
+  ;
+
+  PROCEDURE proc2 (REF a, REF b,REF c);
+    VAR name, date, age;
+
+    BEGIN
+    END
+  ;
+
+  BEGIN
+  END
+.

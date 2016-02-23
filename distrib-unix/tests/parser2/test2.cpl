@@ -1,0 +1,11 @@
+PROGRAM abc;
+
+!This should call the ParseTerm function to accept the '-' character
+!SubTerm should then be called to accept the identifier 'b'
+BEGIN
+  IF  x > a THEN
+  END;
+  
+  IF a > x THEN
+  END;
+END.

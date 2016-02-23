@@ -1,0 +1,18 @@
+#!/bin/bash
+#script that quickly launches the parser1 file if it exists
+#file paths are set up in this case
+#opens the file output after running
+
+make parser2
+if (($? == 0)); then
+    if(($1 == 0)); then
+	./parser2 tests/parser2/test1.cpl tests/parser2/test1.output
+	emacs tests/parser2/test1.output&
+    elif(($1 == 1)); then
+	./parser2 tests/parser2/test2.cpl tests/parser2/test2.output
+	emacs tests/parser2/test2.output&
+    fi
+else
+    echo Error while compiling parser2
+fi
+

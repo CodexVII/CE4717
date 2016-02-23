@@ -1,0 +1,59 @@
+  1 PROGRAM test;
+  2   VAR a, b, a, c, s;
+  3 
+  4   PROCEDURE proc (REF a, REF b,REF c);
+  5     VAR q, asda, v;
+  6 
+  7         PROCEDURE innerProc (REF a, REF b,REF c);
+  8           VAR name, date, age;
+  9 
+ 10           BEGIN
+ 11             a(param1, param2);
+ 12             b(param1, param2, param3);
+ 13             noparam;
+                a(-b);              !'-' denotes term?
+ 14             a(-(-a+b));                 !considered legal but should it be? 15 
+ 16             a(-1);
+                
+ 17             exp(-(expression)); !term with expression subterm as actualPara 18 meter
+ 19 
+ 20             addOp(-a + -b);     !compound term added to compound term
+ 21             multOp(-a*-b);
+ 22           END;
+ 23 
+ 24     BEGIN
+ 25         y := mx + c;
+ 26         a;                      !null string
+ 27     END;
+ 28 
+ 29   PROCEDURE proc2 (REF a, REF b,REF c);
+ 30     VAR name, date, age;
+ 31 
+ 32     BEGIN
+ 33         WHILE a = b DO
+ 34           BEGIN
+ 35              a := 4;
+ 36           END;
+ 37     END;
+ 38 
+ 39   PROCEDURE read;               !showcase procedure with no params
+ 40     BEGIN
+ 41         READ( x, b, a, q, r);   !read keyword
+ 42     END;         
+ 43 
+ 44   PROCEDURE write( a, b);
+ 45     BEGIN
+ 46         c := a + b;
+ 47         WRITE( c );     
+ 48     END;
+ 49 
+ 50   BEGIN
+ 51     IF a <= 4 THEN
+ 52        BEGIN
+ 53          a := a + 1;
+ 54        END
+ 55     ELSE
+ 56        BEGIN
+ 57          a := a - 1;
+ 58        END;
+ 59   END.

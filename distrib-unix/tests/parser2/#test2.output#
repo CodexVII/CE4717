@@ -1,0 +1,9 @@
+  1 PROGRAM ;
+  2 
+  3 !This should call the ParseTerm function to accept the '-' character
+  4 !SubTerm should then be called to accept the identifier 'b'
+  5 BEGIN
+  6    !a(-b);              
+  7    !a(b);
+  8    a(-------b); !should not be allowed
+  9 END.
