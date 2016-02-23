@@ -14,9 +14,4 @@ Syntax: Expected BEGIN, got END
       ^
 Syntax: Expected BEGIN, got END
 
-    ^
-Syntax: Expected END, got End of File
-
-    ^
-Syntax: Expected ., got End of File
-
+ 11 END.
