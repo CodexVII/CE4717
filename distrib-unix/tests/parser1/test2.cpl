@@ -1,8 +1,9 @@
-PROGRAM TermTest;
+PROGRAM abc;
 
 !This should call the ParseTerm function to accept the '-' character
 !SubTerm should then be called to accept the identifier 'b'
 BEGIN
-   a(-b);		
-   a(b);
+   !a(-b);		
+   !a(b);
+   a(--b); !should not be allowed
 END.

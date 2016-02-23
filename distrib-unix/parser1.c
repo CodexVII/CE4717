@@ -583,12 +583,6 @@ PRIVATE void ParseActualParameter( void )
      here.
    */
   ParseExpression();
-  
-  /* if( CurrentToken.code == IDENTIFIER ){  */
-  /*   Accept( IDENTIFIER ); */
-  /* }else{ */
-  /*   ParseExpression(); */
-  /* } */
 }
 
 /*--------------------------------------------------------------------------*/
@@ -633,7 +627,7 @@ PRIVATE void ParseExpression( void )
 PRIVATE void ParseCompoundTerm( void )
 {
   ParseTerm();
-
+  
   while( CurrentToken.code == MULTIPLY || CurrentToken.code == DIVIDE ){
     ParseMultOp();
     ParseCompoundTerm();
@@ -680,11 +674,10 @@ PRIVATE void ParseAssignment( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseTerm( void )
 {
-  /*possibly meantto be hiphen - */
-  if( CurrentToken.code == SUBTRACT ){
+  if( CurrentToken.code == SUBTRACT){
     Accept( SUBTRACT );
   }
-  ParseSubTerm();  
+  ParseSubTerm();
 }
 
 /*--------------------------------------------------------------------------*/
@@ -703,15 +696,13 @@ PRIVATE void ParseTerm( void )
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseSubTerm(){
-  if( CurrentToken.code == IDENTIFIER ){
-    Accept( IDENTIFIER );
-  }else if( CurrentToken.code == INTCONST ){
+  if( CurrentToken.code == INTCONST ){
     Accept( INTCONST );
   }else if( CurrentToken.code == LEFTPARENTHESIS ){
     Accept( LEFTPARENTHESIS );
     ParseExpression();
     Accept( RIGHTPARENTHESIS );
-  }
+  }else Accept( IDENTIFIER );
 }
 
 /*--------------------------------------------------------------------------*/

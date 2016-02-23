@@ -10,16 +10,15 @@ PROGRAM test;
     	  BEGIN
 	    a(param1, param2);
 	    b(param1, param2, param3);
-	    noparam();
+	    noparam;
 	    a(-b);		!'-' denotes term?
-	    a(--b); 	 	!considered legal but should it be?
+	    a(-(-a+b)); 	 	!considered legal but should it be?
 	    a(-1);
 	    
 	    exp(-(expression));	!term with expression subterm as actualParameter
 
 	    addOp(-a + -b);	!compound term added to compound term
 	    multOp(-a*-b);
-	    notAlphaNum(-);
 	  END;
 
     BEGIN
