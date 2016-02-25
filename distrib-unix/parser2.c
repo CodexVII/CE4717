@@ -847,6 +847,12 @@ PRIVATE void Accept( int ExpectedToken )
 
   if( CurrentToken.code != ExpectedToken ){
     SyntaxError( ExpectedToken, CurrentToken );
+
+    /* if EOF was seen an unexpected just give the syntax error and quit */
+    /* no reason to continue */
+    if( CurrentToken.code == ENDOFINPUT ){
+      exit( EXIT_FAILURE );
+    }
     recovering = 1;
     ParseStatus = 1;
   }else{
