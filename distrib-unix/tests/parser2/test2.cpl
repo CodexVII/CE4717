@@ -13,4 +13,7 @@ BEGIN
   
   IF a > x THEN
   END;
+
+  WHILE X > 2 BEGIN DO
+    WRITE
 END.

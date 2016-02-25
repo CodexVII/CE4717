@@ -1,0 +1,8 @@
+  1 PROGRAM Declarations;
+  2 a, c , b;
+    ^
+Syntax: Expected one of: BEGIN PROCEDURE VAR : got Identifier
+
+  3 
+  4 BEGIN
+  5 END.

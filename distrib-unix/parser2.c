@@ -17,13 +17,24 @@
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 
+/*
+  Error recovery with S-Algol and Pascal
+
+  repition operator
+  imbalance between BEGIN and END
+
+  At EBNF points of the grammar, allow re-synchronization to happen
+  at entry and exit points
+
+  Work out SetupSets
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "global.h"
 #include "scanner.h"
 #include "line.h"
-
+#include "sets.h"
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -41,6 +52,14 @@ PRIVATE TOKEN  CurrentToken;       /*  Parser lookahead token.  Updated by  */
 PRIVATE int ParseStatus;	   /*  Used for displaying the approriate   */
 				   /*  message once parsing is complete     */
                                    /*  1 = Invalid, 0 = Valid */
+
+PRIVATE SET DeclarationsFS_aug;
+PRIVATE SET DeclarationsFBS;
+PRIVATE SET ProcDeclarationFS_aug;
+PRIVATE SET ProcDeclarationFBS;
+PRIVATE SET StatementFS_aug;
+PRIVATE SET StatementFBS;
+
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Function prototypes                                                     */
@@ -74,6 +93,8 @@ PRIVATE void ParseRelOp( void );
 PRIVATE void ParseIfStatement( void );
 PRIVATE void ParseReadStatement( void );
 PRIVATE void ParseWriteStatement( void );
+PRIVATE void Synchronise( SET *F, SET *FB );
+PRIVATE void SetupSets( void );
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -88,6 +109,7 @@ PUBLIC int main ( int argc, char *argv[] )
     if ( OpenFiles( argc, argv ) )  {
         InitCharProcessor( InputFile, ListFile );
         CurrentToken = GetToken();
+	SetupSets();
         ParseProgram();
         fclose( InputFile );
         fclose( ListFile );
@@ -100,6 +122,31 @@ PUBLIC int main ( int argc, char *argv[] )
     }
     else 
         return EXIT_FAILURE;
+}
+
+
+PRIVATE void Synchronise(SET *F, SET *FB)
+{
+  SET S;
+
+  S = Union( 2, F, FB );
+  if( !InSet(F, CurrentToken.code) ){
+    ParseStatus = 1;
+    SyntaxError2( *F, CurrentToken );
+    while( !InSet(&S, CurrentToken.code) ){
+      CurrentToken = GetToken();
+    }
+  }
+}
+
+PRIVATE void SetupSets( void )
+{
+  InitSet( &DeclarationsFS_aug, 3, VAR, PROCEDURE, BEGIN );
+  InitSet( &DeclarationsFBS, 3, ENDOFPROGRAM, ENDOFINPUT, END );
+  InitSet( &ProcDeclarationFS_aug, 2, PROCEDURE, BEGIN );
+  InitSet( &ProcDeclarationFBS, 3, ENDOFPROGRAM, ENDOFINPUT, END );
+  InitSet( &StatementFS_aug, 6, IDENTIFIER, WHILE, IF, READ, WRITE, END );
+  InitSet( &StatementFBS, 4, SEMICOLON, ELSE, ENDOFPROGRAM, ENDOFINPUT );
 }
 
 
@@ -125,12 +172,15 @@ PRIVATE void ParseProgram( void )
     Accept( IDENTIFIER );
     Accept( SEMICOLON );
 
+    Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
     if( CurrentToken.code == VAR ){
       ParseDeclarations();
     }
     
+    Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
     while( CurrentToken.code == PROCEDURE ){
       ParseProcDeclaration();
+      Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
     }
     
     while( CurrentToken.code == IDENTIFIER )  {
@@ -169,12 +219,15 @@ PRIVATE void ParseProcDeclaration( void )
   }
   Accept( SEMICOLON );
 
+  Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
   if( CurrentToken.code == VAR ){
     ParseDeclarations();
   }
   
+  Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
   while( CurrentToken.code == PROCEDURE ){
     ParseProcDeclaration();
+    Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
   }
   
   ParseBlock();
@@ -252,10 +305,12 @@ PRIVATE void ParseBlock( void )
 {
   Accept( BEGIN );
   
+  Synchronise( &StatementFS_aug, &StatementFBS );
   while( CurrentToken.code == IDENTIFIER || CurrentToken.code == WHILE || CurrentToken.code == IF
       || CurrentToken.code == READ || CurrentToken.code == WRITE ){
     ParseStatement();
     Accept( SEMICOLON );
+    Synchronise( &StatementFS_aug, &StatementFBS );
   }
 
   Accept( END );
@@ -765,13 +820,6 @@ PRIVATE void ParseMultOp( void )
 /*  Accept:  Takes an expected token name as argument, and if the current   */
 /*           lookahead matches this, advances the lookahead and returns.    */
 /*                                                                          */
-/*           If the expected token fails to match the current lookahead,    */
-/*           this routine reports a syntax error and exits ("crash & burn"  */
-/*           parsing).  Note the use of routine "SyntaxError"               */
-/*           (from "scanner.h") which puts the error message on the         */
-/*           standard output and on the listing file, and the helper        */
-/*           "ReadToEndOfFile" which just ensures that the listing file is  */
-/*           completely generated.                                          */
 /*                                                                          */
 /*                                                                          */
 /*    Inputs:       Integer code of expected token                          */

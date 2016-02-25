@@ -3,27 +3,13 @@
   3 !This should call the ParseTerm function to accept the '-' character
   4 !SubTerm should then be called to accept the identifier 'b'
   5 BEGIN
-  6   IF ( x > a )
-             ^
-Syntax: Expected ), got >
+  6    !a(-b);              
+  7    !a(b);
+  8    a(--b); !should not be allowed
+          ^
+Syntax: Expected Identifier, got -
 
-                 ^
-Syntax: Expected THEN, got )
+          ^
+Parsing ends here in this program
 
-  7   END
-  8 END.
-        ^
-Syntax: Expected BEGIN, got End of File
-
-        ^
-Syntax: Expected END, got End of File
-
-        ^
-Syntax: Expected ;, got End of File
-
-        ^
-Syntax: Expected END, got End of File
-
-        ^
-Syntax: Expected ., got End of File
-
+  9 END.

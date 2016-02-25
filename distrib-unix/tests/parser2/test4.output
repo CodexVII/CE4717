@@ -1,0 +1,32 @@
+  1 PROGRAM ProcDeclaration;
+  2 
+  3 !throws out errors for EOF. possibly due to skipping?
+  4 PROCEDURE;
+             ^
+Syntax: Expected Identifier, got ;
+
+  5   BEGIN
+  6 
+  7 BEGIN
+    ^
+Syntax: Expected one of: END IF READ WHILE WRITE Identifier : got BEGIN
+
+  8 END.
+       ^
+Syntax: Expected ;, got .
+
+       ^
+Syntax: Expected one of: BEGIN PROCEDURE : got .
+
+        ^
+Syntax: Expected BEGIN, got End of File
+
+        ^
+Syntax: Expected one of: END IF READ WHILE WRITE Identifier : got End of File
+
+        ^
+Syntax: Expected END, got End of File
+
+        ^
+Syntax: Expected ., got End of File
+

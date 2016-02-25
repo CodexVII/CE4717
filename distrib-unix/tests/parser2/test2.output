@@ -9,6 +9,9 @@ Syntax: Expected ), got Identifier
   6 
   7   .
       ^
+Syntax: Expected one of: END IF READ WHILE WRITE Identifier : got .
+
+      ^
 Syntax: Expected END, got .
 
   8 
@@ -17,12 +20,3 @@ Syntax: Expected END, got .
  11       
  12   END;
  13   
- 14   IF a > x THEN
-      ^
-Syntax: Expected BEGIN, got IF
-
- 15   END;
-      ^
-Syntax: Expected BEGIN, got END
-
- 16 END.
