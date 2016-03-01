@@ -59,6 +59,7 @@ PRIVATE SET ProcDeclarationFS_aug; /*  parsing to error recovery            */
 PRIVATE SET ProcDeclarationFBS;
 PRIVATE SET StatementFS_aug;
 PRIVATE SET StatementFBS;
+PRIVATE SET StatementFS;           /*  Convinience set for block parsing    */
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -180,6 +181,7 @@ PRIVATE void SetupSets( void )
   InitSet( &ProcDeclarationFBS, 3, ENDOFPROGRAM, ENDOFINPUT, END );
   InitSet( &StatementFS_aug, 6, IDENTIFIER, WHILE, IF, READ, WRITE, END );
   InitSet( &StatementFBS, 4, SEMICOLON, ELSE, ENDOFPROGRAM, ENDOFINPUT );
+  InitSet( &StatementFS, 5, IDENTIFIER, WHILE, IF, READ, WRITE );
 }
 
 /*--------------------------------------------------------------------------*/
@@ -337,8 +339,7 @@ PRIVATE void ParseBlock( void )
   Accept( BEGIN );
   
   Synchronise( &StatementFS_aug, &StatementFBS );
-  while( CurrentToken.code == IDENTIFIER || CurrentToken.code == WHILE || CurrentToken.code == IF
-      || CurrentToken.code == READ || CurrentToken.code == WRITE ){
+  while( InSet(&StatementFS, CurrentToken.code) ){
     ParseStatement();
     Accept( SEMICOLON );
     Synchronise( &StatementFS_aug, &StatementFBS );
