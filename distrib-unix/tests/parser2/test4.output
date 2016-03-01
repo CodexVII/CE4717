@@ -21,3 +21,12 @@ Syntax: Expected one of: BEGIN PROCEDURE : got .
         ^
 Syntax: Expected BEGIN, got End of File
 
+        ^
+Syntax: Expected one of: END IF READ WHILE WRITE Identifier : got End of File
+
+        ^
+Syntax: Expected END, got End of File
+
+        ^
+Syntax: Expected ., got End of File
+
