@@ -1,0 +1,6 @@
+  1 PROGRAM UndeclaredVar;
+  2 BEGIN
+  3   a := c + 1;
+           ^
+Identifier not declared
+  4 END.

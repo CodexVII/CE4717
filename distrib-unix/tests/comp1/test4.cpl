@@ -1,0 +1,4 @@
+PROGRAM UndeclaredVar;
+BEGIN
+  a := c + 1;
+END.

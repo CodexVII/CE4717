@@ -1,6 +1,4 @@
-/*--------------------------------------------------------------------------*/
 /*                                                                          */
-/*       comp1                                                              */
 /*                                                                          */
 /*       Author: Ian Lodovica (13131567)                                    */
 /*                                                                          */
@@ -35,6 +33,9 @@
 #include "scanner.h"
 #include "line.h"
 #include "sets.h"
+#include "symbol.h"
+#include "strtab.h"
+#include "code.h"
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -59,6 +60,11 @@ PRIVATE SET ProcDeclarationFS_aug; /*  parsing to error recovery            */
 PRIVATE SET ProcDeclarationFBS;
 PRIVATE SET StatementFS_aug;
 PRIVATE SET StatementFBS;
+PRIVATE SET StatementFS;           /*  Convinience set for block parsing    */
+
+PRIVATE int scope;		   /*  Contains scope of variables          */
+                                   /*  not too concenred with it in comp1   */
+PRIVATE int varaddress;		   /*  Used inside MakeSymboleTableEntry    */
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -71,7 +77,6 @@ PRIVATE void ParseProgram( void );
 PRIVATE void ParseStatement( void );
 PRIVATE void ParseExpression( void );
 PRIVATE void Accept( int code );
-
 PRIVATE void ParseDeclarations( void );
 PRIVATE void ParseProcDeclaration( void );
 PRIVATE void ParseBlock( void );
@@ -95,10 +100,12 @@ PRIVATE void ParseReadStatement( void );
 PRIVATE void ParseWriteStatement( void );
 PRIVATE void Synchronise( SET *F, SET *FB );
 PRIVATE void SetupSets( void );
+PRIVATE void MakeSymbolTableEntry( int symtype );
+PRIVATE SYMBOL *LookupSymbol( void );
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
-/*  Main: Comp1 entry point.  Sets up parser globals (opens input and       */
+/*  Main: comp1 point. Sets up parser globals (opens input and              */
 /*        output files, initialises current lookahead), then calls          */
 /*        "ParseProgram" to start the parse.                                */
 /*                                                                          */
@@ -111,6 +118,7 @@ PUBLIC int main ( int argc, char *argv[] )
         CurrentToken = GetToken();
 	SetupSets();
         ParseProgram();
+	DumpSymbols(scope);	/* debug making sure symbols are stored */
         fclose( InputFile );
         fclose( ListFile );
 	if(ParseStatus != 0){
@@ -122,6 +130,64 @@ PUBLIC int main ( int argc, char *argv[] )
     }
     else 
         return EXIT_FAILURE;
+}
+
+PRIVATE void MakeSymbolTableEntry( int symtype )
+{
+  SYMBOL *oldsptr = NULL;
+  char *cptr = NULL;
+  SYMBOL *newsptr = NULL;
+  int hashindex;
+
+    if ( CurrentToken.code == IDENTIFIER ) {
+      if ( NULL == ( oldsptr = Probe( CurrentToken.s, &hashindex )) || oldsptr->scope < scope ) {
+	if ( oldsptr == NULL ){
+	  cptr = CurrentToken.s;
+	} else {
+	  cptr = oldsptr->s;
+	}
+	if ( NULL == ( newsptr = EnterSymbol( cptr, hashindex ))) {
+	  /* 〈Fatal internal error in EnterSymbol, compiler must exit: code for this goes here〉 */
+	  Error( "Internal EnterSymbol error. Must exit", CurrentToken.pos );
+	  KillCodeGeneration();
+	} else {
+	  if ( oldsptr == NULL ){
+	    PreserveString();
+	  }
+	  newsptr->scope = scope;
+	  newsptr->type = symtype;
+	  if ( symtype == STYPE_VARIABLE ){
+	    newsptr->address = varaddress;
+	    varaddress++;
+	  } else {
+	    newsptr->address = -1;
+	  }
+	}
+      } else {
+	/* 〈Error, variable already declared: code for this goes here〉 */
+	Error( "Variable or Procedure already declared", CurrentToken.pos );
+	KillCodeGeneration();
+	ParseStatus = 1;
+      }
+    } 
+}
+
+
+PRIVATE SYMBOL *LookupSymbol( void )
+{
+  SYMBOL *sptr;
+  
+  if( CurrentToken.code == IDENTIFIER ){
+    sptr = Probe( CurrentToken.s, NULL );
+    if( sptr == NULL ){
+      Error( "Identifier not declared", CurrentToken.pos );
+      KillCodeGeneration();
+    }
+  } else {
+    sptr = NULL;
+  }
+
+  return sptr;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -180,6 +246,7 @@ PRIVATE void SetupSets( void )
   InitSet( &ProcDeclarationFBS, 3, ENDOFPROGRAM, ENDOFINPUT, END );
   InitSet( &StatementFS_aug, 6, IDENTIFIER, WHILE, IF, READ, WRITE, END );
   InitSet( &StatementFBS, 4, SEMICOLON, ELSE, ENDOFPROGRAM, ENDOFINPUT );
+  InitSet( &StatementFS, 5, IDENTIFIER, WHILE, IF, READ, WRITE );
 }
 
 /*--------------------------------------------------------------------------*/
@@ -243,8 +310,10 @@ PRIVATE void ParseProgram( void )
 PRIVATE void ParseProcDeclaration( void )
 {
   Accept( PROCEDURE );
+  MakeSymbolTableEntry( STYPE_PROCEDURE );
   Accept( IDENTIFIER );
-  
+  scope++;
+
   if( CurrentToken.code == LEFTPARENTHESIS ){
     ParseParameterList();
   }
@@ -263,6 +332,8 @@ PRIVATE void ParseProcDeclaration( void )
   
   ParseBlock();
   Accept( SEMICOLON );
+  RemoveSymbols( scope );
+  scope--;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -337,8 +408,7 @@ PRIVATE void ParseBlock( void )
   Accept( BEGIN );
   
   Synchronise( &StatementFS_aug, &StatementFBS );
-  while( CurrentToken.code == IDENTIFIER || CurrentToken.code == WHILE || CurrentToken.code == IF
-      || CurrentToken.code == READ || CurrentToken.code == WRITE ){
+  while( InSet(&StatementFS, CurrentToken.code) ){
     ParseStatement();
     Accept( SEMICOLON );
     Synchronise( &StatementFS_aug, &StatementFBS );
@@ -365,10 +435,12 @@ PRIVATE void ParseBlock( void )
 PRIVATE void ParseDeclarations( void )
 {
   Accept( VAR );
+  MakeSymbolTableEntry( STYPE_VARIABLE );
   Accept( IDENTIFIER );
 
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
+    MakeSymbolTableEntry( STYPE_VARIABLE );
     Accept( IDENTIFIER );
   }
   
@@ -666,11 +738,6 @@ PRIVATE void ParseProcCallList( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseActualParameter( void )
 {
-  /* parse expression or identifier? 
-     from how the language is setup an expression seems to be a superset
-     of an identifier so we might be able to just always accept an expression
-     here.
-   */
   ParseExpression();
 }
 
@@ -784,14 +851,25 @@ PRIVATE void ParseTerm( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseSubTerm(){
-  if( CurrentToken.code == INTCONST ){
+PRIVATE void ParseSubTerm( void ){
+  SYMBOL *var;
+
+  switch( CurrentToken.code){
+  case INTCONST:
     Accept( INTCONST );
-  }else if( CurrentToken.code == LEFTPARENTHESIS ){
+    break;
+  case LEFTPARENTHESIS:
     Accept( LEFTPARENTHESIS );
     ParseExpression();
     Accept( RIGHTPARENTHESIS );
-  }else Accept( IDENTIFIER );
+    break;
+  default:
+    var = LookupSymbol();	/* checks if variable is declared */
+    Accept( IDENTIFIER );
+    if( var != NULL ){
+      Emit( I_LOADA, var->address );
+    }
+  }
 }
 
 /*--------------------------------------------------------------------------*/

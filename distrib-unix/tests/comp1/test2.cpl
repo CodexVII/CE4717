@@ -1,0 +1,10 @@
+PROGRAM multiScope;
+VAR a, b, c;
+
+PROCEDURE scoped;
+  VAR a;
+  BEGIN
+  END;
+
+BEGIN
+END.

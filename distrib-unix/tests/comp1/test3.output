@@ -1,0 +1,19 @@
+  1 PROGRAM multiProcs;
+  2 VAR a, c , b;
+  3 
+  4 PROCEDURE dupe;
+  5   BEGIN
+  6   END;
+  7 
+  8 PROCEDURE dupe;
+              ^
+Variable or Procedure already declared
+  9   BEGIN
+ 10   END;
+ 11 
+ 12 PROCEDURE legal;        
+ 13   BEGIN
+ 14   END;
+ 15 
+ 16 BEGIN
+ 17 END.

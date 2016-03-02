@@ -1,0 +1,7 @@
+  1 PROGRAM globalVars;
+  2 VAR a, b, c, a;
+                 ^
+Variable already declared
+  3 
+  4 BEGIN
+  5 END.

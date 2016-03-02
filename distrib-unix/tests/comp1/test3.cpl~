@@ -1,0 +1,13 @@
+PROGRAM multiProcs;
+VAR a, c , b;
+
+PROCEDURE dupe;
+  BEGIN
+  END;
+
+PROCEDURE dupe;
+  BEGIN
+  END;
+
+BEGIN
+END.

@@ -1,0 +1,24 @@
+#!/bin/bash
+#script that quickly launches the comp1 file if it exists
+#file paths are set up in this case
+#opens the file output after running
+
+make comp1
+if (($? == 0)); then
+    if(($1 == 0)); then
+	./comp1 tests/comp1/test1.cpl tests/comp1/test1.output
+	emacs tests/comp1/test1.output&
+    elif(($1 == 1)); then
+	./comp1 tests/comp1/test2.cpl tests/comp1/test2.output
+	emacs tests/comp1/test2.output&
+    elif(($1 == 2)); then
+	./comp1 tests/comp1/test3.cpl tests/comp1/test3.output
+	emacs tests/comp1/test3.output&
+    elif(($1 == 3)); then
+	./comp1 tests/comp1/test4.cpl tests/comp1/test4.output
+	emacs tests/comp1/test4.output&
+    fi
+else
+    echo Error while compiling comp1
+fi
+

@@ -1,5 +1,5 @@
 PROGRAM test;
-  VAR a, b, a, c, s;
+  VAR a, b, c, d;
 
   PROCEDURE proc (REF a, REF b,REF c);
     VAR q, asda, v;
@@ -54,6 +54,6 @@ PROGRAM test;
        END
     ELSE
        BEGIN
-	 a := 1 - 1;
+	 a := a - 1;
        END;
   END.
