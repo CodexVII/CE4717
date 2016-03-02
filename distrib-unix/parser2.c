@@ -59,6 +59,7 @@ PRIVATE SET ProcDeclarationFS_aug;
 PRIVATE SET ProcDeclarationFBS;
 PRIVATE SET StatementFS_aug;
 PRIVATE SET StatementFBS;
+PRIVATE SET StatementFS;
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -145,6 +146,7 @@ PRIVATE void SetupSets( void )
   InitSet( &DeclarationsFBS, 3, ENDOFPROGRAM, ENDOFINPUT, END );
   InitSet( &ProcDeclarationFS_aug, 2, PROCEDURE, BEGIN );
   InitSet( &ProcDeclarationFBS, 3, ENDOFPROGRAM, ENDOFINPUT, END );
+  InitSet( &StatementFS, 5, IDENTIFIER, WHILE, IF, READ, WRITE );
   InitSet( &StatementFS_aug, 6, IDENTIFIER, WHILE, IF, READ, WRITE, END );
   InitSet( &StatementFBS, 4, SEMICOLON, ELSE, ENDOFPROGRAM, ENDOFINPUT );
 }
@@ -306,8 +308,7 @@ PRIVATE void ParseBlock( void )
   Accept( BEGIN );
   
   Synchronise( &StatementFS_aug, &StatementFBS );
-  while( CurrentToken.code == IDENTIFIER || CurrentToken.code == WHILE || CurrentToken.code == IF
-      || CurrentToken.code == READ || CurrentToken.code == WRITE ){
+  while( InSet( &StatementFS, CurrentToken.code) ){
     ParseStatement();
     Accept( SEMICOLON );
     Synchronise( &StatementFS_aug, &StatementFBS );
@@ -847,7 +848,7 @@ PRIVATE void Accept( int ExpectedToken )
 
   if( CurrentToken.code != ExpectedToken ){
     SyntaxError( ExpectedToken, CurrentToken );
-
+    
     /* if EOF was seen an unexpected just give the syntax error and quit */
     /* no reason to continue */
     if( CurrentToken.code == ENDOFINPUT ){
