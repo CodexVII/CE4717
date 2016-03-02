@@ -59,11 +59,7 @@ PRIVATE SET ProcDeclarationFS_aug; /*  parsing to error recovery            */
 PRIVATE SET ProcDeclarationFBS;
 PRIVATE SET StatementFS_aug;
 PRIVATE SET StatementFBS;
-<<<<<<< HEAD
-PRIVATE SET StatementFS;
-=======
 PRIVATE SET StatementFS;           /*  Convinience set for block parsing    */
->>>>>>> bc3115a400ad07b94ce08c52d943be5cef98c9e8
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */

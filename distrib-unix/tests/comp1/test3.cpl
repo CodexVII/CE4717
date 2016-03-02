@@ -9,7 +9,7 @@ PROCEDURE dupe;
   BEGIN
   END;
 
-PROCEDURE legal;	
+PROCEDURE legal(REF a, b);	
   BEGIN
   END;
 

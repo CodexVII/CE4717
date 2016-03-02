@@ -11,7 +11,7 @@ Variable or Procedure already declared
   9   BEGIN
  10   END;
  11 
- 12 PROCEDURE legal;        
+ 12 PROCEDURE legal(REF a, b);      
  13   BEGIN
  14   END;
  15 

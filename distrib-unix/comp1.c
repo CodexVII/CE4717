@@ -45,6 +45,7 @@
 
 PRIVATE FILE *InputFile;           /*  CPL source comes from here.          */
 PRIVATE FILE *ListFile;            /*  For nicely-formatted syntax errors.  */
+PRIVATE FILE *CodeFile;		   /*  Assemly code */
 
 PRIVATE TOKEN  CurrentToken;       /*  Parser lookahead token.  Updated by  */
                                    /*  routine Accept (below).  Must be     */
@@ -115,10 +116,12 @@ PUBLIC int main ( int argc, char *argv[] )
 {
     if ( OpenFiles( argc, argv ) )  {
         InitCharProcessor( InputFile, ListFile );
+	InitCodeGenerator( CodeFile );
         CurrentToken = GetToken();
 	SetupSets();
         ParseProgram();
 	DumpSymbols(scope);	/* debug making sure symbols are stored */
+	WriteCodeFile();
         fclose( InputFile );
         fclose( ListFile );
 	if(ParseStatus != 0){
@@ -182,6 +185,7 @@ PRIVATE SYMBOL *LookupSymbol( void )
     if( sptr == NULL ){
       Error( "Identifier not declared", CurrentToken.pos );
       KillCodeGeneration();
+      ParseStatus = 1;
     }
   } else {
     sptr = NULL;
@@ -997,8 +1001,8 @@ PRIVATE void Accept( int ExpectedToken )
 PRIVATE int  OpenFiles( int argc, char *argv[] )
 {
 
-    if ( argc != 3 )  {
-        fprintf( stderr, "%s <inputfile> <listfile>\n", argv[0] );
+    if ( argc != 4 )  {
+        fprintf( stderr, "%s <inputfile> <listfile> <codefile>\n", argv[0] );
         return 0;
     }
 
@@ -1010,6 +1014,12 @@ PRIVATE int  OpenFiles( int argc, char *argv[] )
     if ( NULL == ( ListFile = fopen( argv[2], "w" ) ) )  {
         fprintf( stderr, "cannot open \"%s\" for output\n", argv[2] );
         fclose( InputFile );
+        return 0;
+    }
+
+    if ( NULL == ( CodeFile = fopen( argv[3], "w" ) ) )  {
+        fprintf( stderr, "cannot open \"%s\" for output\n", argv[3] );
+        fclose( CodeFile );
         return 0;
     }
 
