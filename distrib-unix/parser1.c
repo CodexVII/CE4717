@@ -696,7 +696,7 @@ PRIVATE void ParseTerm( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseSubTerm(){
+PRIVATE void ParseSubTerm( void ){
   if( CurrentToken.code == INTCONST ){
     Accept( INTCONST );
   }else if( CurrentToken.code == LEFTPARENTHESIS ){

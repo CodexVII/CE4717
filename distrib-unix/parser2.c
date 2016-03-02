@@ -53,13 +53,17 @@ PRIVATE int ParseStatus;	   /*  Used for displaying the approriate   */
 				   /*  message once parsing is complete     */
                                    /*  1 = Invalid, 0 = Valid */
 
-PRIVATE SET DeclarationsFS_aug;
-PRIVATE SET DeclarationsFBS;
-PRIVATE SET ProcDeclarationFS_aug;
+PRIVATE SET DeclarationsFS_aug;    /*  SET structs used to contain sets     */
+PRIVATE SET DeclarationsFBS;	   /*  needed to move from crash and burn   */
+PRIVATE SET ProcDeclarationFS_aug; /*  parsing to error recovery            */
 PRIVATE SET ProcDeclarationFBS;
 PRIVATE SET StatementFS_aug;
 PRIVATE SET StatementFBS;
+<<<<<<< HEAD
 PRIVATE SET StatementFS;
+=======
+PRIVATE SET StatementFS;           /*  Convinience set for block parsing    */
+>>>>>>> bc3115a400ad07b94ce08c52d943be5cef98c9e8
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -125,7 +129,24 @@ PUBLIC int main ( int argc, char *argv[] )
         return EXIT_FAILURE;
 }
 
-
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  Synchronise: Allows for continual parsing by skipping over sections of  */
+/*               with the intent of stopping at in a location where parsing */
+/*               can continue.                                              */
+/*                                                                          */
+/*    Inputs:       SET *F - Set that contains elements for the first set   */
+/*                           of the production being parsed.                */
+/*                  SET *FB - Follow and Beacon sets for the production     */
+/*                            being parsed                                  */
+/*                                                                          */
+/*    Outputs:      None                                                    */
+/*                                                                          */
+/*    Returns:      Nothing                                                 */
+/*                                                                          */
+/*    Side Effects: Lookahead token can be moved forward multiple times.    */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 PRIVATE void Synchronise(SET *F, SET *FB)
 {
   SET S;
@@ -140,6 +161,22 @@ PRIVATE void Synchronise(SET *F, SET *FB)
   }
 }
 
+
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  SetupSets: Initializes set objects that will be used throughout the     */
+/*             parsing. Such sets include the First, Follow and Beacon sets.*/
+/*             The Augmented Follow sets are also included where necessary. */
+/*                                                                          */
+/*                                                                          */
+/*    Inputs:       None                                                    */
+/*                                                                          */
+/*    Outputs:      None                                                    */
+/*                                                                          */
+/*    Returns:      Nothing                                                 */
+/*                                                                          */
+/*    Side Effects: None.                                                   */
+/*--------------------------------------------------------------------------*/
 PRIVATE void SetupSets( void )
 {
   InitSet( &DeclarationsFS_aug, 3, VAR, PROCEDURE, BEGIN );
@@ -149,9 +186,8 @@ PRIVATE void SetupSets( void )
   InitSet( &StatementFS, 5, IDENTIFIER, WHILE, IF, READ, WRITE );
   InitSet( &StatementFS_aug, 6, IDENTIFIER, WHILE, IF, READ, WRITE, END );
   InitSet( &StatementFBS, 4, SEMICOLON, ELSE, ENDOFPROGRAM, ENDOFINPUT );
+  InitSet( &StatementFS, 5, IDENTIFIER, WHILE, IF, READ, WRITE );
 }
-
-
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -754,7 +790,7 @@ PRIVATE void ParseTerm( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseSubTerm(){
+PRIVATE void ParseSubTerm( void ){
   if( CurrentToken.code == INTCONST ){
     Accept( INTCONST );
   }else if( CurrentToken.code == LEFTPARENTHESIS ){
@@ -851,9 +887,9 @@ PRIVATE void Accept( int ExpectedToken )
     
     /* if EOF was seen an unexpected just give the syntax error and quit */
     /* no reason to continue */
-    if( CurrentToken.code == ENDOFINPUT ){
-      exit( EXIT_FAILURE );
-    }
+    /* if( CurrentToken.code == ENDOFINPUT ){ */
+    /*   exit( EXIT_FAILURE ); */
+    /* } */
     recovering = 1;
     ParseStatus = 1;
   }else{

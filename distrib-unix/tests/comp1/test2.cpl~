@@ -1,0 +1,19 @@
+PROGRAM errors;
+!Testing multiple errors in a file while parsing
+PROCEDURE errorMe ( REF a, b c );
+  VAR d, e, f;
+  BEGIN
+
+  .
+
+BEGIN
+  IF  x > a THEN
+      
+  END;
+  
+  IF a > x THEN
+  END;
+
+  WHILE X > 2 BEGIN DO
+    WRITE
+END.

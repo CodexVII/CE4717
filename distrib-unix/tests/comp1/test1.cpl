@@ -1,0 +1,5 @@
+PROGRAM globalVars;
+VAR a, b, c, a;
+
+BEGIN
+END.
