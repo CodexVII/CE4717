@@ -1,0 +1,7 @@
+PROGRAM codeGeneration;
+VAR a, b, c;
+
+BEGIN
+  x := 5+2-5;
+  y := a*(b-(c+5));
+END.

@@ -23,6 +23,10 @@ if (($? == 0)); then
 	./comp1 $test_path/test4.cpl $test_path/test4.output $test_path/test4
 	emacs $test_path/test4.output& 
 	emacs $test_path/test4&
+    elif(($1 == 4)); then
+	./comp1 $test_path/test5.cpl $test_path/test5.output $test_path/test5
+	emacs $test_path/test5.output& 
+	emacs $test_path/test5&
     fi
 else
     echo Error while compiling comp1

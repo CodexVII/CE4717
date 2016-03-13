@@ -1,0 +1,6 @@
+PROGRAM codeGeneration;
+VAR a, b, c;
+
+BEGIN
+  x := 5+2-5;
+END.

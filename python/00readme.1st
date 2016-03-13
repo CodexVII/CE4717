@@ -1,0 +1,53 @@
+                 Recursive Operator Precedence Parsing
+                 =====================================
+
+This directory contains an implementation of operator-precedence
+parsing (using the elegant "recursive operator precedence" approach
+described in the the LLVM "Kaleidoscope" tutorial).  This is a
+Python implementation, the program is:
+
+         opprec.py
+
+It includes a parser/AST builder for expressions (ASTs are
+represented very simply using Python tuples), plus an evaluator
+for ASTs that contain only integer leaves.
+
+Probably easiest to run from IDLE: 
+
+      $ idle opprec.py
+
+      Within IDLE, use F5 to load opprec.py from the editor
+      into the shell, then:
+
+      >>> p = Parser()                       ## Create a new Parser object.
+      >>> ast = p.parse("10 + 20*30**2 - 4") ## Use it to parse this input.
+      >>> print ast                          ## Print out AST
+      ('-', ('+', '10', ('*', '20', ('**', '30', '2'))), '4')
+      >>> evalAST(ast)                       ## Evaluate the AST
+      18006
+      >>> print 10 + 20*30**2 - 4"           ## Result is the same as system.
+      18006
+      >>> print compileAST(ast)  ## Compile AST to stack-machine assembly.
+       0: Load #10
+       1: Load #20
+       2: Load #30
+       3: Load #2
+       4: Exp
+       5: Mult
+       6: Add
+       7: Load #4
+       8: Sub
+       9: Halt
+
+
+Note that right-associativity of operators is handled by this
+operator-precedence parser.  Operator '**' is right-associative,
+all the others are left-associative.  There is, of course, no
+"Exp" instruction in the stack-machine assembly, so the code above
+won't execute in the simulator, but any expression without '**'
+operators will compile to executable assembly code.  The "Exp" is
+there to illustrate what the right-associative '**' operator should
+compile to.  Of course, it isn't a difficult problem to extend the
+simulator to understand an 'Exp' instruction if desired.
+
+CF 09/03/16.

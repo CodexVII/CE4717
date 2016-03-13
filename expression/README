@@ -1,0 +1,54 @@
+Two examples of expression parsers and code
+generators
+
+expression.c  -- reads a single expression from
+                 its input file and uses the basic
+		 recursive-descent "swapping" technique
+		 to generate CPL assembly code for it,
+		 this can be executed on the simulator.
+
+opprec.c      -- reads one or more expressions, separated
+                 by semicolons, from the standard input,
+		 and generates CPL assembly code for
+		 them.
+
+Building:
+
+  $ make expression       <-- builds 'expression'
+
+  $ make opprec           <-- builds 'opprec'
+
+Running:
+
+  $ ./expression <input-file> <list-file> <code-file>
+
+  e.g.,
+
+  $ ./expression expr.in expr.list expr.code
+
+
+  $ ./opprec <input-file> <list-file> <code-file>
+
+  e.g.,
+
+  $ ./opprec exprs.in exprs.list exprs.code
+
+
+It can be useful, if running on linux or cygwin, to
+read the input expression(s) from the terminal, to do this:
+
+  $ ./expression /dev/tty expr.list expr.code
+  2 + 3
+  ^D
+  $
+
+Testing:  Run the generated code file in the simulator.
+First build the simulator executable.
+
+  $ make sim
+
+Then run the generated assembly code:
+
+  $ ./sim -r expr.code
+
+

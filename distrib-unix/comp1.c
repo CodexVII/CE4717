@@ -125,7 +125,7 @@ PUBLIC int main ( int argc, char *argv[] )
         CurrentToken = GetToken();
 	SetupSets();
         ParseProgram();
-	/* DumpSymbols(scope); */	/* debug making sure symbols are stored */
+	DumpSymbols(scope); 	/* debug making sure symbols are stored */
 	WriteCodeFile();
         fclose( InputFile );
         fclose( ListFile );
