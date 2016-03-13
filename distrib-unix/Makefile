@@ -55,7 +55,7 @@ parser2: parser2.o $(CODELIB)
 	$(CC) -o $@ parser2.o $(CODELIB)
 
 comp1: comp1.o $(CODELIB)
-	$(CC) -o $@ comp1.o $(CODELIB)
+	$(CC) -g -o $@ comp1.o $(CODELIB)
 
 comp2: comp2.o $(CODELIB)
 	$(CC) -o $@ comp2.o $(CODELIB)

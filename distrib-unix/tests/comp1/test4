@@ -1,2 +1,7 @@
-;; Errors detected in input file, no code
-;; generated
+  0  Load  #5   
+  1  Load  0   
+  2  Load  #0   
+  3  Load  0   
+  4  Load  0   
+  5  Load  #1   
+  6  Sub

@@ -1,6 +1,9 @@
-  1 PROGRAM UndeclaredVar;
-  2 BEGIN
-  3   a := c + 1;
-           ^
-Identifier not declared
-  4 END.
+  1        PROGRAM TEST;
+  2        VAR X;
+  3        BEGIN
+  4            X := 5;
+  5            WHILE X >= 0 DO BEGIN
+  6                WRITE( X );
+  7                X := X - 1;
+  8            END;
+  9        END.

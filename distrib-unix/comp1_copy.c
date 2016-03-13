@@ -106,8 +106,6 @@ PRIVATE void SetupSets( void );
 PRIVATE void MakeSymbolTableEntry( int symtype );
 PRIVATE SYMBOL *LookupSymbol( void );
 PRIVATE void ParseOpPrec( int minPrec );
-PRIVATE void SetupOpPrecTables( void );
-
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Main: comp1 point. Sets up parser globals (opens input and              */
@@ -803,8 +801,17 @@ PRIVATE void ParseActualParameter( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseExpression( void )
 {
-  ParseTerm();
-  ParseOpPrec( 0 );
+  ParseCompoundTerm();
+  while( CurrentToken.code == ADD || CurrentToken.code == SUBTRACT ){
+    ParseAddOp();
+    ParseCompoundTerm();
+
+    if( CurrentToken.code == ADD){
+      _Emit( I_ADD );
+    }else{
+      _Emit( I_SUB );
+    }
+  }
 }
 
 /*--------------------------------------------------------------------------*/
