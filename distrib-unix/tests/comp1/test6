@@ -1,0 +1,13 @@
+  0  Inc   1   
+  1  Load  #5   
+  2  Store 0   
+  3  Load  0   
+  4  Load  #5   
+  5  Sub
+  6  Bgz   12  
+  7  Load  0   
+  8  Load  #1   
+  9  Sub
+ 10  Store 0   
+ 11  Br    3   
+ 12  Halt

@@ -13,3 +13,4 @@
  12  Sub
  13  Mult
  14  Store 4   
+ 15  Halt

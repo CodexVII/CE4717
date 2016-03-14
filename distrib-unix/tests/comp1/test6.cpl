@@ -1,0 +1,10 @@
+PROGRAM WhileTest;
+VAR x;
+
+BEGIN
+  x := 5;
+  WHILE x < 5 DO
+    BEGIN
+      x := x-1;
+    END;
+END.

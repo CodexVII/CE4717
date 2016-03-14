@@ -1,0 +1,10 @@
+  1 PROGRAM WhileTest;
+  2 VAR x;
+  3 
+  4 BEGIN
+  5   x := 5;
+  6   WHILE x < 5 DO
+  7     BEGIN
+  8       x := x-1;
+  9     END;
+ 10 END.

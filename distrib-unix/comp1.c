@@ -96,8 +96,8 @@ PRIVATE void ParseSubTerm( void );
 PRIVATE void ParseMultOp( void );
 PRIVATE void ParseAssignment( void );
 PRIVATE void ParseWhileStatement( void );
-PRIVATE void ParseBooleanExpression( void );
-PRIVATE void ParseRelOp( void );
+PRIVATE int ParseBooleanExpression( void ); /* now returns int */
+PRIVATE int ParseRelOp( void );		    /* now returns int */
 PRIVATE void ParseIfStatement( void );
 PRIVATE void ParseReadStatement( void );
 PRIVATE void ParseWriteStatement( void );
@@ -126,6 +126,7 @@ PUBLIC int main ( int argc, char *argv[] )
 	SetupSets();
         ParseProgram();
 	DumpSymbols(scope); 	/* debug making sure symbols are stored */
+	_Emit(I_HALT);
 	WriteCodeFile();
         fclose( InputFile );
         fclose( ListFile );
@@ -656,10 +657,16 @@ PRIVATE void ParseSimpleStatement( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseWhileStatement( void )
 {
+  int Label1, Label2, L2BackPatchLoc;
+
   Accept( WHILE );
-  ParseBooleanExpression();
+  Label1 = CurrentCodeAddress();
+  L2BackPatchLoc = ParseBooleanExpression();
   Accept( DO );
   ParseBlock();
+  Emit( I_BR, Label1 );
+  Label2 = CurrentCodeAddress();
+  BackPatch( L2BackPatchLoc, Label2 );
 }
 
 /*--------------------------------------------------------------------------*/
@@ -677,11 +684,17 @@ PRIVATE void ParseWhileStatement( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseBooleanExpression( void )
+PRIVATE int ParseBooleanExpression( void )
 {
+  int BackPatchAddr, RelOpInstruction;
+
   ParseExpression();
-  ParseRelOp();
+  RelOpInstruction = ParseRelOp();
   ParseExpression();
+  _Emit( I_SUB );
+  BackPatchAddr = CurrentCodeAddress();
+  Emit( RelOpInstruction, 0 );
+  return BackPatchAddr;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -699,25 +712,33 @@ PRIVATE void ParseBooleanExpression( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseRelOp( void )
+PRIVATE int ParseRelOp( void )
 {
+  int RelOpInstruction;
+
   switch( CurrentToken.code ){
   case EQUALITY:
+    RelOpInstruction = I_BZ;
     Accept( EQUALITY );
     break;
   case LESSEQUAL:
+    RelOpInstruction = I_BG;
     Accept( LESSEQUAL );
     break;
   case GREATEREQUAL:
+    RelOpInstruction = I_BL;
     Accept( GREATEREQUAL );
     break;
   case LESS:
     Accept( LESS );
+    RelOpInstruction = I_BGZ;
     break;
   case GREATER:
+  default:
+    RelOpInstruction = I_BLZ;
     Accept( GREATER );
-    break;
   }
+  return RelOpInstruction;
 }
 
 /*--------------------------------------------------------------------------*/
