@@ -605,21 +605,39 @@ PRIVATE void ParseReadStatement( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseIfStatement( void )
 {
-  int Label1, L1BackPatchLoc;
+  int Label1, Label2, L1BackPatchLoc, L2BackPatchLoc;
 
   Accept( IF );
   L1BackPatchLoc = ParseBooleanExpression();
   Accept( THEN );
   ParseBlock();
-  Label1 = CurrentCodeAddress();
-  BackPatch( L1BackPatchLoc, Label1);
 
+  /* Retain current address to allow code to skip the ELSE block
+     Branch skip placed in a seperate for loop to accommodate for
+     IF-THEN and IF-THEN-ELSE structures
+  */
+  if( CurrentToken.code == ELSE ){
+    L2BackPatchLoc = CurrentCodeAddress();
+    Emit( I_BR, 0 );
+  }
+  
+  /* Forces the program to skip to the ELSE statement if the expression
+     in the if statement returned false
+   */
+  Label1 = CurrentCodeAddress();
+  BackPatch( L1BackPatchLoc, Label1 );
+  
+  
   if( CurrentToken.code == ELSE ){
     Accept( ELSE );
     ParseBlock();
+    Label2 = CurrentCodeAddress();
+    BackPatch( L2BackPatchLoc, Label2 );
   }
-
+  
 }
+
+
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
