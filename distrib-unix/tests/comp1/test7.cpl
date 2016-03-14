@@ -1,10 +1,19 @@
 PROGRAM IfTest;
-VAR y;
+VAR y, x;
 
 BEGIN
   y := 20;
   IF y > 5 THEN
     BEGIN
       y := y + 5;
+    END
+  ELSE
+    BEGIN
+      y := -3;
+    END;
+
+  IF x < 5 THEN
+    BEGIN
+      x := 20;
     END;
 END.

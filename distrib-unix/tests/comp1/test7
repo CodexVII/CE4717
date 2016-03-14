@@ -1,12 +1,22 @@
-  0  Inc   1   
+  0  Inc   2   
   1  Load  #20  
   2  Store 0   
   3  Load  0   
   4  Load  #5   
   5  Sub
-  6  Blz   11  
+  6  Blz   12  
   7  Load  0   
   8  Load  #5   
   9  Add
  10  Store 0   
- 11  Halt
+ 11  Br    15  
+ 12  Load  #3   
+ 13  Neg
+ 14  Store 0   
+ 15  Load  1   
+ 16  Load  #5   
+ 17  Sub
+ 18  Bgz   21  
+ 19  Load  #20  
+ 20  Store 1   
+ 21  Halt
