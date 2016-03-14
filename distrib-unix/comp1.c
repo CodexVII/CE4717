@@ -479,17 +479,23 @@ PRIVATE void ParseBlock( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseDeclarations( void )
 {
+  int var_count = 1; 		/* at least 1 global if this func is called */
+
   Accept( VAR );
   MakeSymbolTableEntry( STYPE_VARIABLE );
   Accept( IDENTIFIER );
-
+  
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
     MakeSymbolTableEntry( STYPE_VARIABLE );
     Accept( IDENTIFIER );
+    var_count++;
   }
   
   Accept( SEMICOLON );
+  
+  /* Increment memory space by amount of global variables declared */
+  Emit(I_INC, var_count);
 }
 
 /*--------------------------------------------------------------------------*/

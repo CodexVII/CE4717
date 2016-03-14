@@ -1,14 +1,15 @@
-  0  Load  #5   
-  1  Load  #2   
-  2  Add
-  3  Load  #5   
-  4  Sub
-  5  Store 3   
-  6  Load  0   
-  7  Load  1   
-  8  Load  2   
-  9  Load  #5   
- 10  Add
- 11  Sub
- 12  Mult
- 13  Store 4   
+  0  Inc   5   
+  1  Load  #5   
+  2  Load  #2   
+  3  Add
+  4  Load  #5   
+  5  Sub
+  6  Store 3   
+  7  Load  0   
+  8  Load  1   
+  9  Load  2   
+ 10  Load  #5   
+ 11  Add
+ 12  Sub
+ 13  Mult
+ 14  Store 4   
