@@ -1,0 +1,10 @@
+PROGRAM IfTest
+VAR y;
+
+BEGIN
+  y := 20;
+  IF y > 5 THEN
+    BEGIN
+      y := y + 5;
+    END;
+END.

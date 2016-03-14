@@ -605,15 +605,20 @@ PRIVATE void ParseReadStatement( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseIfStatement( void )
 {
+  int Label1, L1BackPatchLoc;
+
   Accept( IF );
-  ParseBooleanExpression();
+  L1BackPatchLoc = ParseBooleanExpression();
   Accept( THEN );
   ParseBlock();
-  
+  Label1 = CurrentCodeAddress();
+  BackPatch( L1BackPatchLoc, Label1);
+
   if( CurrentToken.code == ELSE ){
     Accept( ELSE );
     ParseBlock();
   }
+
 }
 
 /*--------------------------------------------------------------------------*/
