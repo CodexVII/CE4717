@@ -86,7 +86,7 @@ PRIVATE void ParseBlock( void );
 PRIVATE void ParseParameterList( void );
 PRIVATE void ParseFormalParameter( void );
 PRIVATE void ParseSimpleStatement( void );
-PRIVATE void ParseRestOfStatement( void );
+PRIVATE void ParseRestOfStatement( SYMBOL *target ); /* changed from void */
 PRIVATE void ParseProcCallList( void );
 PRIVATE void ParseActualParameter( void );
 PRIVATE void ParseCompoundTerm( void );
@@ -626,8 +626,11 @@ PRIVATE void ParseIfStatement( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseSimpleStatement( void )
 {
+  SYMBOL *target;
+  target = LookupSymbol();  	/* Verify identifier has been declared */
+
   Accept( IDENTIFIER );
-  ParseRestOfStatement();
+  ParseRestOfStatement( target );
 }
 
 /*--------------------------------------------------------------------------*/
@@ -726,12 +729,28 @@ PRIVATE void ParseRelOp( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseRestOfStatement( void )
+PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYMBOL *target ) */
 {
-  if( CurrentToken.code == LEFTPARENTHESIS ){
-    ParseProcCallList();
-  }else if( CurrentToken.code == ASSIGNMENT ){
+  switch( CurrentToken.code )
+  {
+  case LEFTPARENTHESIS:
+    ParseProcCallList(); 	/* ProcCallList( target ) */
+  case SEMICOLON:
+    if( target != NULL && target->type == STYPE_PROCEDURE ){
+      Emit( I_CALL, target->address );
+    } else {
+      Error( "Not a procedure", CurrentToken.pos );
+      KillCodeGeneration();
+    }
+  case ASSIGNMENT:
+  default: 
     ParseAssignment();
+    if( target != NULL && target->type == STYPE_VARIABLE ){
+      Emit( I_STOREA, target->address );
+    }else{
+      Error( "Undelared Variable", CurrentToken.pos );
+      KillCodeGeneration();
+    }
   }
 
   /* do nothing on null string */

@@ -3,10 +3,12 @@
   2  Add
   3  Load  #5   
   4  Sub
-  5  Load  0   
-  6  Load  1   
-  7  Load  2   
-  8  Load  #5   
-  9  Add
- 10  Sub
- 11  Mult
+  5  Store 3   
+  6  Load  0   
+  7  Load  1   
+  8  Load  2   
+  9  Load  #5   
+ 10  Add
+ 11  Sub
+ 12  Mult
+ 13  Store 4   

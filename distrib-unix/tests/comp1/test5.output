@@ -1,5 +1,5 @@
   1 PROGRAM codeGeneration;
-  2 VAR a, b, c;
+  2 VAR a, b, c, x, y;
   3 
   4 BEGIN
   5   x := 5+2-5;
