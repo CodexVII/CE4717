@@ -1,0 +1,13 @@
+  0  Inc   2   
+  1  Read
+  2  Store 0   
+  3  Read
+  4  Store 1   
+  5  Load  0   
+  6  Load  1   
+  7  Add
+  8  Load  #4   
+  9  Load  0   
+ 10  Add
+ 11  Store 0   
+ 12  Halt

@@ -35,6 +35,10 @@ if (($? == 0)); then
 	./comp1 $test_path/test7.cpl $test_path/test7.output $test_path/test7
 	emacs $test_path/test7.output& 
 	emacs $test_path/test7&
+    elif(($1 == 7)); then
+	./comp1 $test_path/test8.cpl $test_path/test8.output $test_path/test8
+	emacs $test_path/test8.output& 
+	emacs $test_path/test8&
     fi
 else
     echo Error while compiling comp1

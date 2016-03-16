@@ -1,0 +1,7 @@
+PROGRAM ReadWriteTest;
+VAR x, y;
+
+BEGIN
+  READ(x,y);
+  WRITE(x+y);
+END.

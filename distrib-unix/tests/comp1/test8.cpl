@@ -1,0 +1,9 @@
+PROGRAM ReadWriteTest;
+VAR x, y;
+
+BEGIN
+  READ(x,y);
+  WRITE(x+y);
+
+  x := 4 + x;
+END.

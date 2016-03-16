@@ -554,9 +554,11 @@ PRIVATE void ParseWriteStatement( void )
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
     ParseExpression();
+    _Emit( I_WRITE );
   }
-
+  
   Accept( RIGHTPARENTHESIS );
+
 }
 
 /*--------------------------------------------------------------------------*/
@@ -576,16 +578,35 @@ PRIVATE void ParseWriteStatement( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseReadStatement( void )
 {
+  SYMBOL *target;
+
   Accept( READ );
   Accept( LEFTPARENTHESIS );
+  target = LookupSymbol();  	/* Verify identifier has been declared */
   Accept( IDENTIFIER );
 
+  if( target != NULL && target->type == STYPE_VARIABLE ){
+    _Emit( I_READ );
+    Emit( I_STOREA, target->address ); 
+  }else{
+    Error( "Undeclared Variable", CurrentToken.pos );
+  }
+  
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
+    target = LookupSymbol();
     Accept( IDENTIFIER );
+
+    if( target != NULL && target->type == STYPE_VARIABLE ){
+      _Emit( I_READ );
+      Emit( I_STOREA, target->address ); 
+    }else{
+      Error( "Undeclared Variable", CurrentToken.pos );
+    }
   }
   
   Accept( RIGHTPARENTHESIS );
+
 }
 
 /*--------------------------------------------------------------------------*/
@@ -634,9 +655,7 @@ PRIVATE void ParseIfStatement( void )
     Label2 = CurrentCodeAddress();
     BackPatch( L2BackPatchLoc, Label2 );
   }
-  
 }
-
 
 
 /*--------------------------------------------------------------------------*/

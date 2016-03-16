@@ -1,0 +1,9 @@
+  1 PROGRAM ReadWriteTest;
+  2 VAR x, y;
+  3 
+  4 BEGIN
+  5   READ(x,y);
+  6   WRITE(x+y);
+  7 
+  8   x := 4 + x;
+  9 END.
