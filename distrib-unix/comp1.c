@@ -550,7 +550,7 @@ PRIVATE void ParseWriteStatement( void )
   Accept( LEFTPARENTHESIS );
   
   ParseExpression();
-  
+  _Emit( I_WRITE );  
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
     ParseExpression();

@@ -6,8 +6,8 @@
   5  Load  0   
   6  Load  1   
   7  Add
-  8  Load  #4   
-  9  Load  0   
- 10  Add
- 11  Store 0   
+  8  Read
+  9  Store 0   
+ 10  Read
+ 11  Store 1   
  12  Halt

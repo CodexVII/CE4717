@@ -1,7 +1,15 @@
-  0  Load  #5   
-  1  Load  0   
-  2  Load  #0   
+  0  Inc   1   
+  1  Load  #5   
+  2  Store 0   
   3  Load  0   
-  4  Load  0   
-  5  Load  #1   
-  6  Sub
+  4  Load  #0   
+  5  Sub
+  6  Bl    14  
+  7  Load  0   
+  8  Write
+  9  Load  0   
+ 10  Load  #1   
+ 11  Sub
+ 12  Store 0   
+ 13  Br    3   
+ 14  Halt

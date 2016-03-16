@@ -5,5 +5,10 @@
   5   READ(x,y);
   6   WRITE(x+y);
   7 
-  8   x := 4 + x;
+  8   READ(x, y, 2);
+                 ^
+Syntax: Expected Identifier, got Integer Constant
+
+                 ^
+Undeclared Variable
   9 END.
