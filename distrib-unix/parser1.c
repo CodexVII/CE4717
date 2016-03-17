@@ -129,11 +129,6 @@ PRIVATE void ParseProgram( void )
     while( CurrentToken.code == PROCEDURE ){
       ParseProcDeclaration();
     }
-    
-    while( CurrentToken.code == IDENTIFIER )  {
-        ParseStatement();
-        Accept( SEMICOLON );
-    }
 
     ParseBlock();
     Accept( ENDOFPROGRAM );     /* Token "." has name ENDOFPROGRAM          */

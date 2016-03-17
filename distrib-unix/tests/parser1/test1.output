@@ -54,6 +54,6 @@
  54        END
  55     ELSE
  56        BEGIN
- 57          a := a - 1;
+ 57          a := 1 - 1;
  58        END;
  59   END.

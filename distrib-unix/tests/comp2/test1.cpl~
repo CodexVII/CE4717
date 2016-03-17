@@ -1,0 +1,5 @@
+PROGRAM SimpleProc;
+PROCEDURE a;
+  BEGIN
+    WRITE(g1 + 20);
+  END;

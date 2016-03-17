@@ -364,12 +364,7 @@ PRIVATE void ParseProgram( void )
       ParseProcDeclaration();
       Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
     }
-    
-    while( CurrentToken.code == IDENTIFIER )  {
-        ParseStatement();
-        Accept( SEMICOLON );
-    }
-
+   
     ParseBlock();
     Accept( ENDOFPROGRAM );     /* Token "." has name ENDOFPROGRAM          */
 }
@@ -828,8 +823,8 @@ PRIVATE int ParseRelOp( void )
 /*      <RestOfStatement>  :== <ProcCallList> | <Assignment> | null         */
 /*                                                                          */
 /*                                                                          */
-/*    Inputs:       None                                                    */
-/*                                                                          */
+/*    Inputs:       SYMBOL *target - Identifier that's either a procedure   */
+/*                                   or variable.                           */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */

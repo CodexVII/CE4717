@@ -1,0 +1,11 @@
+PROGRAM SimpleProc;
+VAR g1;
+
+PROCEDURE y;
+  BEGIN
+    WRITE(g1 + 20);
+  END;
+BEGIN
+  g1 := 100;
+  y;
+END.
