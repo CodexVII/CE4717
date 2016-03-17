@@ -5,27 +5,11 @@
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
-/*       An illustration of the use of the character handler and scanner    */
-/*       in a parser for the language                                       */
-/*                                                                          */
-/*       Builds on top of parser1. Now implements basic error recovery      */
-/*       which allows it to keep parsing finding more errors if they        */
-/*       exist                                                              */
-/*                                                                          */
+/*       Builds on top of parser2. Includes basic code generation without   */
+/*       taking procedures or local variables into account                  */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 
-/*
-  Error recovery with S-Algol and Pascal
-
-  repition operator
-  imbalance between BEGIN and END
-
-  At EBNF points of the grammar, allow re-synchronization to happen
-  at entry and exit points
-
-  Work out SetupSets
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,7 +52,7 @@ PRIVATE int varaddress;		   /*  Used inside MakeSymboleTableEntry    */
 
 
 int prec[256];			   /* Table of operator precedences.        */
-int operatorInstruction[256]; 
+int operatorInstruction[256];      /* Complementary table to prec           */
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Function prototypes                                                     */
@@ -89,11 +73,8 @@ PRIVATE void ParseSimpleStatement( void );
 PRIVATE void ParseRestOfStatement( SYMBOL *target ); /* changed from void */
 PRIVATE void ParseProcCallList( void );
 PRIVATE void ParseActualParameter( void );
-PRIVATE void ParseCompoundTerm( void );
-PRIVATE void ParseAddOp( void );
 PRIVATE void ParseTerm( void );
 PRIVATE void ParseSubTerm( void );
-PRIVATE void ParseMultOp( void );
 PRIVATE void ParseAssignment( void );
 PRIVATE void ParseWhileStatement( void );
 PRIVATE int ParseBooleanExpression( void ); /* now returns int */
@@ -110,9 +91,11 @@ PRIVATE void SetupOpPrecTables( void );
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
-/*  Main: comp1 point. Sets up parser globals (opens input and              */
-/*        output files, initialises current lookahead), then calls          */
-/*        "ParseProgram" to start the parse.                                */
+/*  Main: comp1 entry point.                                                */
+/*                                                                          */
+/*      Initializes files that are passed in as arguments. Sets up          */
+/*      tables and sets. Calls to parse the program and then write          */
+/*      the accompanying assembly code.                                     */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 
@@ -125,7 +108,6 @@ PUBLIC int main ( int argc, char *argv[] )
         CurrentToken = GetToken();
 	SetupSets();
         ParseProgram();
-	DumpSymbols(scope); 	/* debug making sure symbols are stored */
 	_Emit(I_HALT);
 	WriteCodeFile();
         fclose( InputFile );
@@ -141,6 +123,20 @@ PUBLIC int main ( int argc, char *argv[] )
         return EXIT_FAILURE;
 }
 
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  SetupOpPrecTables: Sets up the tables used when comparing different     */
+/*               operatator precedences. Used for RPN parsing.              */
+/*                                                                          */
+/*    Inputs:       None                                                    */
+/*                                                                          */
+/*    Outputs:      None                                                    */
+/*                                                                          */
+/*    Returns:      Nothing                                                 */
+/*                                                                          */
+/*    Side Effects: prec and operatorInstruction arrays initialized         */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 PRIVATE void SetupOpPrecTables( void )
 {
   int i;
@@ -160,6 +156,22 @@ PRIVATE void SetupOpPrecTables( void )
   operatorInstruction[SUBTRACT] = I_SUB;
 }
 
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  ParseOpPrec: Implements operator precedence parsing in a recursive      */
+/*               way. Used when parsing expressions. Makes sure that        */
+/*               the load order and operator use is correct when generating */
+/*               code.                                                      */
+/*                                                                          */
+/*    Inputs:       int minPrec - the minimum precedence that this level of */
+/*                                ParseOpRec will accept                    */
+/*    Outputs:      None                                                    */
+/*                                                                          */
+/*    Returns:      Nothing                                                 */
+/*                                                                          */
+/*    Side Effects: Lookahead token can be moved forward several times      */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 PRIVATE void ParseOpPrec( int minPrec )
 {
   int op1, op2;
@@ -177,6 +189,22 @@ PRIVATE void ParseOpPrec( int minPrec )
   }
 }
 
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  MakeSymbolEntry: Adds an identifier to the symbol table. Checks if      */
+/*               the symbol has already been declared previously.           */
+/*               Calculates and assigns addresses in memory for variables   */
+/*               and procedures.                                            */
+/*                                                                          */
+/*    Inputs:       int symtype - used to set the type of the identifier    */
+/*                                when adding to the symbol table.          */
+/*    Outputs:      None                                                    */
+/*                                                                          */
+/*    Returns:      Nothing                                                 */
+/*                                                                          */
+/*    Side Effects: Symbol table may be modified.                           */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 PRIVATE void MakeSymbolTableEntry( int symtype )
 {
   SYMBOL *oldsptr = NULL;
@@ -192,9 +220,7 @@ PRIVATE void MakeSymbolTableEntry( int symtype )
 	  cptr = oldsptr->s;
 	}
 	if ( NULL == ( newsptr = EnterSymbol( cptr, hashindex ))) {
-	  /* 〈Fatal internal error in EnterSymbol, compiler must exit: code for this goes here〉 */
 	  Error( "Internal EnterSymbol error. Must exit", CurrentToken.pos );
-	  KillCodeGeneration();
 	} else {
 	  if ( oldsptr == NULL ){
 	    PreserveString();
@@ -209,15 +235,27 @@ PRIVATE void MakeSymbolTableEntry( int symtype )
 	  }
 	}
       } else {
-	/* 〈Error, variable already declared: code for this goes here〉 */
 	Error( "Variable or Procedure already declared", CurrentToken.pos );
-	KillCodeGeneration();
 	ParseStatus = 1;
       }
     } 
 }
 
-
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  LookupSymbol: Checks to see if the identifier has been previously       */
+/*                declared. Normal procedure before an identifier is        */
+/*                accepted during code generation.                          */
+/*                                                                          */
+/*    Inputs:       None                                                    */
+/*                                                                          */
+/*    Outputs:      None                                                    */
+/*                                                                          */
+/*    Returns:      SYMBOL *sptr - identifier as found in SymbolTable       */
+/*                                                                          */
+/*    Side Effects: None                                      */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 PRIVATE SYMBOL *LookupSymbol( void )
 {
   SYMBOL *sptr;
@@ -880,6 +918,8 @@ PRIVATE void ParseActualParameter( void )
 /*                                                                          */
 /*      <ParseExpression>  :== <CompoundTerm> {<AddOp> <CompoundTerm>}      */
 /*                                                                          */
+/*      **This has been updated to forgo explicitly parsing <CompoundTerm>, */
+/*        <AddOp> and subsequently <MultOp> in favor of <OpPrec>**          */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
@@ -893,37 +933,6 @@ PRIVATE void ParseExpression( void )
 {
   ParseTerm();
   ParseOpPrec( 0 );
-}
-
-/*--------------------------------------------------------------------------*/
-/*                                                                          */
-/*    ParseCompoundTerm implements                                          */
-/*                                                                          */
-/*      <CompoundTerm>  :== <Term> {<MultOp> <Term>}                        */
-/*                                                                          */
-/*                                                                          */
-/*    Inputs:       None                                                    */
-/*                                                                          */
-/*    Outputs:      None                                                    */
-/*                                                                          */
-/*    Returns:      Nothing                                                 */
-/*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
-/*--------------------------------------------------------------------------*/
-PRIVATE void ParseCompoundTerm( void )
-{
-  ParseTerm();
-  ParseOpPrec( 0 );
-  while( CurrentToken.code == MULTIPLY || CurrentToken.code == DIVIDE ){
-    ParseMultOp();
-    ParseCompoundTerm();
-
-    if( CurrentToken.code == MULTIPLY ){
-      _Emit( I_MULT );
-    } else {
-      _Emit( I_DIV );
-    }
-  }
 }
 
 /*--------------------------------------------------------------------------*/
@@ -947,8 +956,6 @@ PRIVATE void ParseAssignment( void )
   ParseExpression();
 }
 
-/* runs fine even with this function's body  commented out */
-/* a(-b) still considered legal by compiler */
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*    ParseTerm implements                                                  */
@@ -1021,54 +1028,6 @@ PRIVATE void ParseSubTerm( void ){
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
-/*    ParseAddOp implements                                                 */
-/*                                                                          */
-/*      <AddOp>  :== "+" | "-"                                              */
-/*                                                                          */
-/*                                                                          */
-/*    Inputs:       None                                                    */
-/*                                                                          */
-/*    Outputs:      None                                                    */
-/*                                                                          */
-/*    Returns:      Nothing                                                 */
-/*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
-/*--------------------------------------------------------------------------*/
-PRIVATE void ParseAddOp( void )
-{
-  if( CurrentToken.code == ADD ){
-    Accept( ADD );
-  }else{
-    Accept( SUBTRACT );
-  }
-}
-
-/*--------------------------------------------------------------------------*/
-/*                                                                          */
-/*    ParseMultOp implements                                                */
-/*                                                                          */
-/*      <MultOp>  :== "*" | "/"                                             */
-/*                                                                          */
-/*                                                                          */
-/*    Inputs:       None                                                    */
-/*                                                                          */
-/*    Outputs:      None                                                    */
-/*                                                                          */
-/*    Returns:      Nothing                                                 */
-/*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
-/*--------------------------------------------------------------------------*/
-PRIVATE void ParseMultOp( void )
-{
-  if( CurrentToken.code == MULTIPLY ){
-    Accept( MULTIPLY );
-  }else{
-    Accept( DIVIDE );
-  }
-}
-
-/*--------------------------------------------------------------------------*/
-/*                                                                          */
 /*  End of parser.  Support routines follow.                                */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
@@ -1104,11 +1063,6 @@ PRIVATE void Accept( int ExpectedToken )
   if( CurrentToken.code != ExpectedToken ){
     SyntaxError( ExpectedToken, CurrentToken );
 
-    /* if EOF was seen an unexpected just give the syntax error and quit */
-    /* no reason to continue */
-    /* if( CurrentToken.code == ENDOFINPUT ){ */
-    /*   exit( EXIT_FAILURE ); */
-    /* } */
     recovering = 1;
     ParseStatus = 1;
   }else{
@@ -1120,11 +1074,11 @@ PRIVATE void Accept( int ExpectedToken )
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  OpenFiles:  Reads strings from the command-line and opens the           */
-/*              associated input and listing files.                         */
+/*              associated input, listing file and code file.               */
 /*                                                                          */
-/*    Note that this routine mmodifies the globals "InputFile" and          */
-/*    "ListingFile".  It returns 1 ("true" in C-speak) if the input and     */
-/*    listing files are successfully opened, 0 if not, allowing the caller  */
+/*    Note that this routine mmodifies the globals "InputFile",             */
+/*    "ListingFile" and "CodeFile".  It returns 1 ("true" in C-speak) if    */
+/*    the files are successfully opened, 0 if not, allowing the caller      */
 /*    to make a graceful exit if the opening process failed.                */
 /*                                                                          */
 /*                                                                          */
@@ -1136,8 +1090,8 @@ PRIVATE void Accept( int ExpectedToken )
 /*                                                                          */
 /*    Returns:      Boolean success flag (i.e., an "int":  1 or 0)          */
 /*                                                                          */
-/*    Side Effects: If successful, modifies globals "InputFile" and         */
-/*                  "ListingFile".                                          */
+/*    Side Effects: If successful, modifies globals "InputFile",            */
+/*                  "ListingFile" and "CodeFile"                             */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 
