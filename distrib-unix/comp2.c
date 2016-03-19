@@ -62,7 +62,7 @@ PRIVATE void ParseProgram( void );
 PRIVATE void ParseStatement( void );
 PRIVATE void ParseExpression( void );
 PRIVATE void Accept( int code );
-PRIVATE int ParseDeclarations( SYMBOL *proc );
+PRIVATE int ParseDeclarations( void );
 PRIVATE void ParseProcDeclaration( void );
 PRIVATE void ParseBlock( void );
 PRIVATE void ParseParameterList( void );
@@ -406,7 +406,7 @@ PRIVATE void ParseProcDeclaration( void )
 
   Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
   if( CurrentToken.code == VAR ){
-    var_count = ParseDeclarations( procedure );
+    var_count = ParseDeclarations();
     Emit( I_INC, var_count );
   }
   
@@ -521,7 +521,7 @@ PRIVATE void ParseBlock( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE int ParseDeclarations( SYMBOL *target )
+PRIVATE int ParseDeclarations( void )
 {
   int var_count = 1; 		/* at least 1 global if this func is called */
   int varaddress = 0;
@@ -530,7 +530,7 @@ PRIVATE int ParseDeclarations( SYMBOL *target )
   if( scope == 1 ){
     MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
   }else{
-    varaddress = target->address + 2; /* account for ret, static, dynamic */
+    varaddress = 3; /* account for ret, static, dynamic */
     MakeSymbolTableEntry( STYPE_LOCALVAR, &varaddress );
   }
 
