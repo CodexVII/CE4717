@@ -62,7 +62,7 @@ PRIVATE void ParseProgram( void );
 PRIVATE void ParseStatement( void );
 PRIVATE void ParseExpression( void );
 PRIVATE void Accept( int code );
-PRIVATE void ParseDeclarations( void );
+PRIVATE int ParseDeclarations( void );
 PRIVATE void ParseProcDeclaration( void );
 PRIVATE void ParseBlock( void );
 PRIVATE void ParseParameterList( void );
@@ -198,7 +198,7 @@ PRIVATE void ParseOpPrec( int minPrec )
 /*                                when adding to the symbol table.          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
-/*    Returns:      Nothing                                                 */
+/*    Returns:      SYMBOL *newsptr                                         */
 /*                                                                          */
 /*    Side Effects: Symbol table may be modified.                           */
 /*                                                                          */
@@ -355,7 +355,7 @@ PRIVATE void ParseProgram( void )
 
     Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
     if( CurrentToken.code == VAR ){
-      ParseDeclarations();
+      Emit( I_INC, ParseDeclarations() );
     }
     
     Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
@@ -518,28 +518,27 @@ PRIVATE void ParseBlock( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseDeclarations( void )
+PRIVATE int ParseDeclarations( void )
 {
   int var_count = 1; 		/* at least 1 global if this func is called */
+  int varaddress;
 
-  /* SYMBOL *variable; */
   Accept( VAR );
-  /* variable = MakeSymbolTableEntry( STYPE_VARIABLE, NULL ); */
-  MakeSymbolTableEntry( STYPE_VARIABLE, NULL );
+  varaddress = CurrentCodeAddress();
+  MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
   Accept( IDENTIFIER );
-  /* variable->address = CurrentCodeAddress();   */
 
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
-    MakeSymbolTableEntry( STYPE_VARIABLE, NULL );
+    MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
     Accept( IDENTIFIER );
     var_count++;
   }
   
   Accept( SEMICOLON );
-  
-  /* Increment memory space by amount of global variables declared */
-  Emit(I_INC, var_count);
+  /* DumpSymbols( scope ); */
+  /* Increment memory space by amount of variables declared */
+  return var_count;
 }
 
 /*--------------------------------------------------------------------------*/

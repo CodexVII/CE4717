@@ -108,6 +108,7 @@ PUBLIC int main ( int argc, char *argv[] )
         CurrentToken = GetToken();
 	SetupSets();
         ParseProgram();
+	DumpSymbols(scope);
 	_Emit(I_HALT);
 	WriteCodeFile();
         fclose( InputFile );

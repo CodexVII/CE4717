@@ -1,0 +1,5 @@
+PROGRAM TestLocals
+PROCEDURE y;
+  VAR a, b;
+  a := 1+b;
+END;

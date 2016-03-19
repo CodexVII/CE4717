@@ -1,0 +1,10 @@
+  0  Inc   3   
+  1  Br    8   
+  2  Inc   2   
+  3  Load  #1   
+  4  Load  3   
+  5  Add
+  6  Store 2   
+  7  Ret
+  8  Call  2   
+  9  Halt
