@@ -1,11 +1,11 @@
-  1 PROGRAM TestLocals;
-  2 VAR a, b, c;
-  3 PROCEDURE y;
-  4   VAR a, b;
-  5   BEGIN
-  6     a := 1+b;
-  7   END;
-  8 
-  9 BEGIN
- 10   y;
- 11 END.
+  1 PROGRAM p3;
+  2   PROCEDURE y;
+  3     VAR v1, v2;
+  4     BEGIN
+  5       v1 := 100;
+  6       v2 := 20;
+  7       WRITE( v1 - v2 );
+  8     END;
+  9   BEGIN
+ 10     y;
+ 11   END.

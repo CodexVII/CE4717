@@ -1,10 +1,14 @@
-  0  Inc   3   
-  1  Br    8   
-  2  Inc   2   
-  3  Load  #1   
-  4  Load  3   
-  5  Add
-  6  Store 2   
-  7  Ret
-  8  Call  2   
-  9  Halt
+  0  Br    12  
+  1  Inc   2   
+  2  Load  #100 
+  3  Store 1   
+  4  Load  #20  
+  5  Store 2   
+  6  Load  1   
+  7  Load  2   
+  8  Sub
+  9  Write
+ 10  Dec   2   
+ 11  Ret
+ 12  Call  1   
+ 13  Halt

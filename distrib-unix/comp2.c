@@ -388,6 +388,7 @@ PRIVATE void ParseProgram( void )
 PRIVATE void ParseProcDeclaration( void )
 {
   int backpatch_addr;
+  int var_count;
   SYMBOL *procedure;
 
   Accept( PROCEDURE );
@@ -405,7 +406,8 @@ PRIVATE void ParseProcDeclaration( void )
 
   Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
   if( CurrentToken.code == VAR ){
-    ParseDeclarations();
+    var_count = ParseDeclarations();
+    Emit( I_INC, var_count );
   }
   
   Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
@@ -416,6 +418,7 @@ PRIVATE void ParseProcDeclaration( void )
   
   ParseBlock();
   Accept( SEMICOLON );
+  Emit( I_DEC, var_count );
   _Emit( I_RET );
   BackPatch( backpatch_addr, CurrentCodeAddress() );
   RemoveSymbols( scope );
@@ -536,7 +539,6 @@ PRIVATE int ParseDeclarations( void )
   }
   
   Accept( SEMICOLON );
-  /* DumpSymbols( scope ); */
   /* Increment memory space by amount of variables declared */
   return var_count;
 }
