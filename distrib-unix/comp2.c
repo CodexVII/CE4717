@@ -850,7 +850,10 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYM
     ParseProcCallList(); 	/* ProcCallList( target ) */
   case SEMICOLON:
     if( target != NULL && target->type == STYPE_PROCEDURE ){
+      _Emit( I_PUSHFP );
+      _Emit( I_BSF );
       Emit( I_CALL, target->address );
+      _Emit( I_RSF );
     } else {
       Error( "Not a procedure", CurrentToken.pos );
       KillCodeGeneration();
@@ -1009,6 +1012,7 @@ PRIVATE void ParseTerm( void )
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseSubTerm( void ){
+  int i, dS;
   SYMBOL *var;
 
   switch( CurrentToken.code){
@@ -1021,11 +1025,25 @@ PRIVATE void ParseSubTerm( void ){
     ParseExpression();
     Accept( RIGHTPARENTHESIS );
     break;
+  case IDENTIFIER:
   default:
     var = LookupSymbol();	/* checks if variable is declared */
     Accept( IDENTIFIER );
-    if( var != NULL && var->type == STYPE_VARIABLE){
-      Emit( I_LOADA, var->address );
+    if( var != NULL ){
+      if( var->type == STYPE_VARIABLE){
+	Emit( I_LOADA, var->address );
+      }else if( var->type == STYPE_LOCALVAR ){
+	dS = scope - var->scope;
+	if( dS == 0 ){
+	  Emit( I_LOADFP, var->address );
+	}else{
+	  _Emit( I_LOADFP );
+	  for( i = 0; i < dS-1; i++){
+	    _Emit( I_LOADSP );
+	  }
+	  Emit( I_LOADSP, var->address );
+	}
+      }
     }else{
       Error( "Variable undeclared.", CurrentToken.pos );
       ParseStatus = 1;

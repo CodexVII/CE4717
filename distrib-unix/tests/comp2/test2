@@ -10,5 +10,8 @@
   9  Write
  10  Dec   2   
  11  Ret
- 12  Call  1   
- 13  Halt
+ 12  Push  FP
+ 13  Bsf
+ 14  Call  1   
+ 15  Rsf
+ 16  Halt
