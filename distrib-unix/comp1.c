@@ -46,7 +46,7 @@ PRIVATE SET ProcDeclarationFBS;
 PRIVATE SET StatementFS_aug;
 PRIVATE SET StatementFBS;
 PRIVATE SET StatementFS;           /*  Convinience set for block parsing    */
-PRIVATE int scope;		   /*  Contains scope of variables          */
+PRIVATE int scope = 1;		   /*  Contains scope of variables          */
                                    /*  not too concenred with it in comp1   */
 PRIVATE int varaddress;		   /*  Used inside MakeSymboleTableEntry    */
 

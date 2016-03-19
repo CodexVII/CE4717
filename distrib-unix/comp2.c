@@ -46,7 +46,7 @@ PRIVATE SET ProcDeclarationFBS;
 PRIVATE SET StatementFS_aug;
 PRIVATE SET StatementFBS;
 PRIVATE SET StatementFS;           /*  Convinience set for block parsing    */
-PRIVATE int scope;		   /*  Contains scope of variables          */
+PRIVATE int scope = 1;		   /*  Contains scope of variables          */
                                    /*  not too concenred with it in comp1   */
 
 int prec[256];			   /* Table of operator precedences.        */
@@ -62,7 +62,7 @@ PRIVATE void ParseProgram( void );
 PRIVATE void ParseStatement( void );
 PRIVATE void ParseExpression( void );
 PRIVATE void Accept( int code );
-PRIVATE int ParseDeclarations( void );
+PRIVATE int ParseDeclarations( SYMBOL *proc );
 PRIVATE void ParseProcDeclaration( void );
 PRIVATE void ParseBlock( void );
 PRIVATE void ParseParameterList( void );
@@ -406,7 +406,7 @@ PRIVATE void ParseProcDeclaration( void )
 
   Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
   if( CurrentToken.code == VAR ){
-    var_count = ParseDeclarations();
+    var_count = ParseDeclarations( procedure );
     Emit( I_INC, var_count );
   }
   
@@ -521,19 +521,28 @@ PRIVATE void ParseBlock( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE int ParseDeclarations( void )
+PRIVATE int ParseDeclarations( SYMBOL *target )
 {
   int var_count = 1; 		/* at least 1 global if this func is called */
-  int varaddress;
+  int varaddress = 0;
 
   Accept( VAR );
-  varaddress = CurrentCodeAddress();
-  MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
+  if( scope == 1 ){
+    MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
+  }else{
+    varaddress = target->address + 2; /* account for ret, static, dynamic */
+    MakeSymbolTableEntry( STYPE_LOCALVAR, &varaddress );
+  }
+
   Accept( IDENTIFIER );
 
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
-    MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
+    if( scope == 1 ){
+      MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
+    }else{
+      MakeSymbolTableEntry( STYPE_LOCALVAR, &varaddress );
+    }
     Accept( IDENTIFIER );
     var_count++;
   }
@@ -628,7 +637,6 @@ PRIVATE void ParseReadStatement( void )
   Accept( LEFTPARENTHESIS );
   target = LookupSymbol();  	/* Verify identifier has been declared */
   Accept( IDENTIFIER );
-
   if( target != NULL && target->type == STYPE_VARIABLE ){
     _Emit( I_READ );
     Emit( I_STOREA, target->address ); 
@@ -844,6 +852,8 @@ PRIVATE int ParseRelOp( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYMBOL *target ) */
 {
+  int i, dS;
+
   switch( CurrentToken.code )
   {
   case LEFTPARENTHESIS:
@@ -862,10 +872,23 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYM
   case ASSIGNMENT:
   default: 
     ParseAssignment();
-    if( target != NULL && target->type == STYPE_VARIABLE ){
-      Emit( I_STOREA, target->address );
+    if( target != NULL){
+      if( target->type == STYPE_VARIABLE){
+	Emit( I_STOREA, target->address );
+      }else if( target->type == STYPE_LOCALVAR ){
+	dS = scope - target->scope;
+	if( dS == 0 ){
+	  Emit( I_STOREFP, target->address );
+	}else{
+	  _Emit( I_LOADFP );
+	  for( i = 0; i < dS-1; i++){
+	    _Emit( I_LOADSP );
+	  }
+	  Emit( I_STORESP, target->address );
+	}
+      }
     }else{
-      Error( "Undelared Variable", CurrentToken.pos );
+      Error( "Undeclared Variable", CurrentToken.pos );
       KillCodeGeneration();
     }
   }
@@ -1028,6 +1051,7 @@ PRIVATE void ParseSubTerm( void ){
   case IDENTIFIER:
   default:
     var = LookupSymbol();	/* checks if variable is declared */
+    DumpSymbols(scope);
     Accept( IDENTIFIER );
     if( var != NULL ){
       if( var->type == STYPE_VARIABLE){
@@ -1045,7 +1069,7 @@ PRIVATE void ParseSubTerm( void ){
 	}
       }
     }else{
-      Error( "Variable undeclared.", CurrentToken.pos );
+      Error( "Undeclared Variable.", CurrentToken.pos );
       ParseStatus = 1;
     }
   }

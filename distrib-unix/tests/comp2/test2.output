@@ -1,11 +1,14 @@
   1 PROGRAM p3;
-  2   PROCEDURE y;
-  3     VAR v1, v2;
-  4     BEGIN
-  5       v1 := 100;
-  6       v2 := 20;
-  7       WRITE( v1 - v2 );
-  8     END;
-  9   BEGIN
- 10     y;
- 11   END.
+  2   VAR v1, v2;
+  3   PROCEDURE y;
+  4     VAR v1, v2;
+  5     BEGIN
+  6       v1 := 100;
+  7       v2 := 20;
+  8       WRITE( v1 - v2 );
+  9     END;
+ 10   BEGIN
+ 11     v1 := 870;
+ 12     v2 := 420;      
+ 13     y;
+ 14   END.
