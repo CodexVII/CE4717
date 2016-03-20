@@ -860,7 +860,15 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYM
     ParseProcCallList(); 	/* ProcCallList( target ) */
   case SEMICOLON:
     if( target != NULL && target->type == STYPE_PROCEDURE ){
-      _Emit( I_PUSHFP );
+      dS = scope -target->scope;
+      if( dS == 0 ){
+	_Emit( I_PUSHFP );
+      }else{
+	_Emit( I_LOADFP );
+	for( i = 0; i < dS-1; i++){
+	  _Emit( I_LOADSP );
+	}
+      }
       _Emit( I_BSF );
       Emit( I_CALL, target->address );
       _Emit( I_RSF );
@@ -1051,7 +1059,6 @@ PRIVATE void ParseSubTerm( void ){
   case IDENTIFIER:
   default:
     var = LookupSymbol();	/* checks if variable is declared */
-    DumpSymbols(scope);
     Accept( IDENTIFIER );
     if( var != NULL ){
       if( var->type == STYPE_VARIABLE){

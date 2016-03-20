@@ -1,0 +1,15 @@
+  0  Br    14  
+  1  Inc   1   
+  2  Br    12  
+  3  Load  #20  
+  4  Load  FP
+  5  Store [SP]+3   
+  6  Load  FP
+  7  Bsf
+  8  Call  3   
+  9  Rsf
+ 10  Dec   10747940
+ 11  Ret
+ 12  Dec   1   
+ 13  Ret
+ 14  Halt

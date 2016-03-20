@@ -1,0 +1,38 @@
+  1 PROGRAM p7;
+  2   PROCEDURE y;
+  3     VAR y1;
+  4       PROCEDURE z;
+  5         BEGIN
+  6           y1 := 20;
+  7           z;
+  8         END;
+    ^
+Syntax: Expected one of: BEGIN PROCEDURE : got End of File
+
+    ^
+Syntax: Expected BEGIN, got End of File
+
+    ^
+Syntax: Expected one of: END IF READ WHILE WRITE Identifier : got End of File
+
+    ^
+Syntax: Expected END, got End of File
+
+    ^
+Syntax: Expected ;, got End of File
+
+    ^
+Syntax: Expected one of: BEGIN PROCEDURE : got End of File
+
+    ^
+Syntax: Expected BEGIN, got End of File
+
+    ^
+Syntax: Expected one of: END IF READ WHILE WRITE Identifier : got End of File
+
+    ^
+Syntax: Expected END, got End of File
+
+    ^
+Syntax: Expected ., got End of File
+

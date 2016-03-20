@@ -845,6 +845,7 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYM
       Error( "Not a procedure", CurrentToken.pos );
       KillCodeGeneration();
     }
+    break;
   case ASSIGNMENT:
   default: 
     ParseAssignment();
