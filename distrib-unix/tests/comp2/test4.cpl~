@@ -1,0 +1,9 @@
+PROGRAM BasicRecursive
+  VAR g1;
+  PROCEDURE y;
+    VAR y1, y2;
+      PROCEDURE z;
+        VAR z1, z2;
+	BEGIN
+	  z;	
+	END

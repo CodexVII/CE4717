@@ -550,7 +550,6 @@ PRIVATE int ParseDeclarations( void )
   }
   
   Accept( SEMICOLON );
-  /* Increment memory space by amount of variables declared */
   return var_count;
 }
 

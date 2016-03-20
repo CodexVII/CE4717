@@ -1,0 +1,15 @@
+PROGRAM MultiLevelRecursive;
+  VAR g1;
+  PROCEDURE y;
+    VAR y1, y2;
+      PROCEDURE z;
+        VAR z1, z2;
+	BEGIN
+	  y;
+	END;
+    BEGIN
+      z;
+    END;
+  BEGIN
+    y;
+  END.

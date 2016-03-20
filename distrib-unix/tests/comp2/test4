@@ -1,0 +1,22 @@
+  0  Inc   1   
+  1  Br    17  
+  2  Inc   2   
+  3  Br    11  
+  4  Inc   2   
+  5  Load  FP
+  6  Bsf
+  7  Call  4   
+  8  Rsf
+  9  Dec   2   
+ 10  Ret
+ 11  Push  FP
+ 12  Bsf
+ 13  Call  4   
+ 14  Rsf
+ 15  Dec   2   
+ 16  Ret
+ 17  Push  FP
+ 18  Bsf
+ 19  Call  2   
+ 20  Rsf
+ 21  Halt
