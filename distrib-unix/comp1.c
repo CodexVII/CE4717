@@ -222,6 +222,7 @@ PRIVATE void MakeSymbolTableEntry( int symtype )
 	}
 	if ( NULL == ( newsptr = EnterSymbol( cptr, hashindex ))) {
 	  Error( "Internal EnterSymbol error. Must exit", CurrentToken.pos );
+	  KillCodeGeneration();
 	} else {
 	  if ( oldsptr == NULL ){
 	    PreserveString();
@@ -237,6 +238,7 @@ PRIVATE void MakeSymbolTableEntry( int symtype )
 	}
       } else {
 	Error( "Variable or Procedure already declared", CurrentToken.pos );
+	KillCodeGeneration();
 	ParseStatus = 1;
       }
     } 
@@ -301,6 +303,7 @@ PRIVATE void Synchronise(SET *F, SET *FB)
   if( !InSet(F, CurrentToken.code) ){
     ParseStatus = 1;
     SyntaxError2( *F, CurrentToken );
+    KillCodeGeneration();
     while( !InSet(&S, CurrentToken.code) ){
       CurrentToken = GetToken();
     }
@@ -624,6 +627,7 @@ PRIVATE void ParseReadStatement( void )
     Emit( I_STOREA, target->address ); 
   }else{
     Error( "Undeclared Variable", CurrentToken.pos );
+    KillCodeGeneration();
   }
   
   while( CurrentToken.code == COMMA ){
@@ -636,6 +640,7 @@ PRIVATE void ParseReadStatement( void )
       Emit( I_STOREA, target->address ); 
     }else{
       Error( "Undeclared Variable", CurrentToken.pos );
+      KillCodeGeneration();
     }
   }
   
@@ -1017,7 +1022,8 @@ PRIVATE void ParseSubTerm( void ){
     if( var != NULL && var->type == STYPE_VARIABLE){
       Emit( I_LOADA, var->address );
     }else{
-      Error( "Variable undeclared.", CurrentToken.pos );
+      Error( "Undeclared Variable.", CurrentToken.pos );
+      KillCodeGeneration();
       ParseStatus = 1;
     }
   }
@@ -1059,7 +1065,7 @@ PRIVATE void Accept( int ExpectedToken )
 
   if( CurrentToken.code != ExpectedToken ){
     SyntaxError( ExpectedToken, CurrentToken );
-
+    KillCodeGeneration();
     recovering = 1;
     ParseStatus = 1;
   }else{
