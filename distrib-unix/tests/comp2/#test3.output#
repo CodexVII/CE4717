@@ -7,8 +7,8 @@
   7           z;
   8         END;
   9     BEGIN
- 10       z;
- 11     END;
- 12   BEGIN
- 13     y;
- 14   END.
+
+ 10     END;
+ 11   BEGIN
+ 12     y;
+ 13   END.

@@ -7,6 +7,7 @@ PROGRAM p7;
 	  z;
 	END;
     BEGIN
+      z;
     END;
   BEGIN
     y;
