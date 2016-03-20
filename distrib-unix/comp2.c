@@ -21,6 +21,8 @@
 #include "strtab.h"
 #include "code.h"
 
+#define PSTACK_SIZE 25
+
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Global variables used by this parser.                                   */
@@ -51,6 +53,9 @@ PRIVATE int scope = 1;		   /*  Contains scope of variables          */
 
 int prec[256];			   /* Table of operator precedences.        */
 int operatorInstruction[256];      /* Complementary table to prec           */
+SYMBOL *paramStack[PSTACK_SIZE];   /* Manages temp stack for proc params    */
+
+
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Function prototypes                                                     */
@@ -65,11 +70,11 @@ PRIVATE void Accept( int code );
 PRIVATE int ParseDeclarations( void );
 PRIVATE void ParseProcDeclaration( void );
 PRIVATE void ParseBlock( void );
-PRIVATE void ParseParameterList( void );
+PRIVATE void ParseParameterList( SYMBOL *target );
 PRIVATE void ParseFormalParameter( void );
 PRIVATE void ParseSimpleStatement( void );
 PRIVATE void ParseRestOfStatement( SYMBOL *target ); /* changed from void */
-PRIVATE void ParseProcCallList( void );
+PRIVATE void ParseProcCallList( SYMBOL *target );
 PRIVATE void ParseActualParameter( void );
 PRIVATE void ParseTerm( void );
 PRIVATE void ParseSubTerm( void );
@@ -87,6 +92,10 @@ PRIVATE SYMBOL *LookupSymbol( void );
 PRIVATE void ParseOpPrec( int minPrec );
 PRIVATE void SetupOpPrecTables( void );
 
+PRIVATE void Push( SYMBOL *sym );
+PRIVATE SYMBOL *Pop( void );
+PRIVATE void ClearStack( void );
+PRIVATE void PrintStack( void );
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*  Main: comp1 entry point.                                                */
@@ -105,6 +114,7 @@ PUBLIC int main ( int argc, char *argv[] )
 	SetupOpPrecTables();
         CurrentToken = GetToken();
 	SetupSets();
+	ClearStack();
         ParseProgram();
 	_Emit(I_HALT);
 	WriteCodeFile();
@@ -402,7 +412,7 @@ PRIVATE void ParseProcDeclaration( void )
   scope++;
 
   if( CurrentToken.code == LEFTPARENTHESIS ){
-    ParseParameterList();
+    ParseParameterList(procedure);
   }
   Accept( SEMICOLON );
 
@@ -445,16 +455,32 @@ PRIVATE void ParseProcDeclaration( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseParameterList( void )
+PRIVATE void ParseParameterList( SYMBOL *target )
 {
+  int pcount = 1;		/* holds the count for total params in proc */
+  int paddress = -1;		/* addr assigned to params in proc          */
+  int i;
+  SYMBOL *sym;
+
   Accept( LEFTPARENTHESIS );  
   ParseFormalParameter();
 
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
     ParseFormalParameter();
+    pcount++;
   }
-  
+
+  PrintStack();
+
+  for(i = 0; i < pcount; i++){
+    sym = Pop();
+    if( sym != NULL){
+      sym->address = paddress--;
+    }
+  }
+  target->pcount = pcount;	/* Assign pcount to procedure symbol        */
+  ClearStack();			/* house cleaning, likely unecessary        */
   Accept( RIGHTPARENTHESIS );
 }
 
@@ -477,8 +503,13 @@ PRIVATE void ParseFormalParameter( void )
 {
   if( CurrentToken.code == REF ){
     Accept( REF );
+    Push( MakeSymbolTableEntry(STYPE_REFPAR, NULL) );
+    Accept( IDENTIFIER );
+  }else{
+    Push( MakeSymbolTableEntry(STYPE_VALUEPAR, NULL) );
+    Accept( IDENTIFIER );
   }
-  Accept( IDENTIFIER );
+
 }
 
 /*--------------------------------------------------------------------------*/
@@ -528,13 +559,13 @@ PRIVATE void ParseBlock( void )
 PRIVATE int ParseDeclarations( void )
 {
   int var_count = 1; 		/* at least 1 global if this func is called */
-  int varaddress = 0;
+  int varaddress = 0;		/* Initialize to 0 for globals              */
 
   Accept( VAR );
   if( scope == 1 ){
     MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
   }else{
-    varaddress = 3; /* account for ret, static, dynamic */
+    varaddress = 3;             /* account for static, dynamic and ret addr */
     MakeSymbolTableEntry( STYPE_LOCALVAR, &varaddress );
   }
 
@@ -855,14 +886,14 @@ PRIVATE int ParseRelOp( void )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYMBOL *target ) */
+PRIVATE void ParseRestOfStatement( SYMBOL *target ) 
 {
   int i, dS;
 
   switch( CurrentToken.code )
   {
   case LEFTPARENTHESIS:
-    ParseProcCallList(); 	/* ProcCallList( target ) */
+    ParseProcCallList(target); 	/* ProcCallList( target ) */
   case SEMICOLON:
     if( target != NULL && target->type == STYPE_PROCEDURE ){
       dS = scope -target->scope;
@@ -877,6 +908,9 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYM
       _Emit( I_BSF );
       Emit( I_CALL, target->address );
       _Emit( I_RSF );
+      if( target->pcount > 0 ){
+	Emit( I_DEC, target->pcount );
+      }
     } else {
       Error( "Not a procedure", CurrentToken.pos );
       KillCodeGeneration();
@@ -886,9 +920,9 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYM
   default: 
     ParseAssignment();
     if( target != NULL){
-      if( target->type == STYPE_VARIABLE){
+      if( target->type == STYPE_VARIABLE){ /* global variables */
 	Emit( I_STOREA, target->address );
-      }else if( target->type == STYPE_LOCALVAR ){
+      }else if( target->type == STYPE_LOCALVAR ){ /* local variables */
 	dS = scope - target->scope;
 	if( dS == 0 ){
 	  Emit( I_STOREFP, target->address );
@@ -899,6 +933,11 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYM
 	  }
 	  Emit( I_STORESP, target->address );
 	}
+      }else if( target->type == STYPE_VALUEPAR ){ /* value param */
+	Emit( I_STOREFP, target->address );
+      }else{			/* REF param */
+	Emit( I_LOADFP, target->address );
+	_Emit( I_STORESP );
       }
     }else{
       Error( "Undeclared Variable", CurrentToken.pos );
@@ -924,7 +963,7 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYM
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseProcCallList( void )
+PRIVATE void ParseProcCallList( SYMBOL *target )
 {
   Accept( LEFTPARENTHESIS );
   
@@ -1066,9 +1105,9 @@ PRIVATE void ParseSubTerm( void ){
     var = LookupSymbol();	/* checks if variable is declared */
     Accept( IDENTIFIER );
     if( var != NULL ){
-      if( var->type == STYPE_VARIABLE){
+      if( var->type == STYPE_VARIABLE){ /* global variables */
 	Emit( I_LOADA, var->address );
-      }else if( var->type == STYPE_LOCALVAR ){
+      }else if( var->type == STYPE_LOCALVAR ){ /* local variables */
 	dS = scope - var->scope;
 	if( dS == 0 ){
 	  Emit( I_LOADFP, var->address );
@@ -1079,6 +1118,11 @@ PRIVATE void ParseSubTerm( void ){
 	  }
 	  Emit( I_LOADSP, var->address );
 	}
+      }else if( var->type == STYPE_VALUEPAR ){  /* value param */
+	Emit( I_LOADFP, var->address );
+      }else{	/* REF param */
+	Emit( I_LOADFP, var->address );
+	_Emit( I_LOADSP );
       }
     }else{
       Error( "Undeclared Variable.", CurrentToken.pos );
@@ -1185,3 +1229,41 @@ PRIVATE int  OpenFiles( int argc, char *argv[] )
     return 1;
 }
 
+PRIVATE void Push( SYMBOL *sym )
+{
+  int i;
+  for(i=PSTACK_SIZE-1; i > 0; i--){
+    paramStack[i] = paramStack[i-1];
+  }
+  paramStack[0] = sym;
+}
+
+PRIVATE SYMBOL *Pop( void )
+{
+  int i;
+  SYMBOL *sym = paramStack[0];
+  for(i=0; i<PSTACK_SIZE-2; i++){
+    paramStack[i] = paramStack[i+1];
+  }
+  return sym;
+}
+
+PRIVATE void ClearStack( void )
+{
+  int i;
+  for(i=0; i<PSTACK_SIZE; i++){
+    paramStack[i] = NULL;
+
+  }
+}
+
+PRIVATE void PrintStack( void )
+{
+  int i;
+  for(i=0; i<PSTACK_SIZE; i++){
+    if( paramStack[i] != NULL ){
+      printf("Element: %d, Name: %s\n", 
+	     i, paramStack[i]->s);
+    }
+  }
+}

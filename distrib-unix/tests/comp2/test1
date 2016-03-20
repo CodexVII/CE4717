@@ -7,5 +7,8 @@
   6  Ret
   7  Load  #100 
   8  Store 0   
-  9  Call  2   
- 10  Halt
+  9  Push  FP
+ 10  Bsf
+ 11  Call  2   
+ 12  Rsf
+ 13  Halt

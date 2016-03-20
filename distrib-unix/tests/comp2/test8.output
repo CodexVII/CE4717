@@ -1,0 +1,13 @@
+  1 PROGRAM testcopy;
+  2   VAR a, b;
+  3     PROCEDURE copy(x);
+  4     BEGIN
+  5       b := x;
+  6     END;
+  7   BEGIN
+  8     a := 20;
+  9     copy(a+20);
+             ^
+Syntax: Expected ), got Identifier
+
+ 10   END.

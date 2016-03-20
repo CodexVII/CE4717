@@ -1,0 +1,26 @@
+  0  Inc   2   
+  1  Br    17  
+  2  Inc   2   
+  3  Load  #500 
+  4  Store FP+3   
+  5  Load  #2000
+  6  Store FP+4   
+  7  Load  FP+3   
+  8  Load  FP+4   
+  9  Add
+ 10  Store 0   
+ 11  Load  FP+4   
+ 12  Load  FP+3   
+ 13  Div
+ 14  Store 1   
+ 15  Dec   2   
+ 16  Ret
+ 17  Push  FP
+ 18  Bsf
+ 19  Call  2   
+ 20  Rsf
+ 21  Load  0   
+ 22  Write
+ 23  Load  1   
+ 24  Write
+ 25  Halt

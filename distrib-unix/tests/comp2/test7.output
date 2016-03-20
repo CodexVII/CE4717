@@ -1,0 +1,19 @@
+  1 PROGRAM Calls;
+  2   VAR a, b;
+  3   PROCEDURE x;
+  4     PROCEDURE y;
+  5       VAR c, d;
+  6       BEGIN
+  7         c := 500;
+  8         d := 2000;
+  9         a := c+d;
+ 10         b := d/c;
+ 11       END;
+ 12     BEGIN
+ 13       y;
+ 14     END;
+ 15     
+ 16   BEGIN
+ 17     x;
+ 18     WRITE(a, b);
+ 19   END.

@@ -1,0 +1,5 @@
+PROGRAM TestParams;
+VAR a;
+  PROCEDURE(x, y, z);
+  BEGIN
+  END;

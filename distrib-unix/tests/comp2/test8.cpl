@@ -1,0 +1,10 @@
+PROGRAM testcopy;
+  VAR a, b;
+    PROCEDURE copy(x);
+    BEGIN
+      b := x;
+    END;
+  BEGIN
+    a := 20;
+    copy(a+20);
+  END.

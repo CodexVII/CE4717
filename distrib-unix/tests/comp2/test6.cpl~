@@ -1,0 +1,10 @@
+PROGRAM Calls;
+  VAR a, b;
+  PROCEDURE x;
+    VAR c, d;
+    BEGIN
+      c := 500;
+      d := 2000;
+      a := c+d;
+      b := d/c;
+    END;
