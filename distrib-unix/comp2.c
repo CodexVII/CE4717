@@ -388,7 +388,7 @@ PRIVATE void ParseProgram( void )
 PRIVATE void ParseProcDeclaration( void )
 {
   int backpatch_addr;
-  int var_count;
+  int var_count = 0;
   SYMBOL *procedure;
 
   Accept( PROCEDURE );
@@ -418,7 +418,9 @@ PRIVATE void ParseProcDeclaration( void )
   
   ParseBlock();
   Accept( SEMICOLON );
-  Emit( I_DEC, var_count );
+  if( var_count > 0 ){
+    Emit( I_DEC, var_count );
+  }
   _Emit( I_RET );
   BackPatch( backpatch_addr, CurrentCodeAddress() );
   RemoveSymbols( scope );

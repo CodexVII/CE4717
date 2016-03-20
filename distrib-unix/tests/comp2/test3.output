@@ -6,33 +6,8 @@
   6           y1 := 20;
   7           z;
   8         END;
-    ^
-Syntax: Expected one of: BEGIN PROCEDURE : got End of File
-
-    ^
-Syntax: Expected BEGIN, got End of File
-
-    ^
-Syntax: Expected one of: END IF READ WHILE WRITE Identifier : got End of File
-
-    ^
-Syntax: Expected END, got End of File
-
-    ^
-Syntax: Expected ;, got End of File
-
-    ^
-Syntax: Expected one of: BEGIN PROCEDURE : got End of File
-
-    ^
-Syntax: Expected BEGIN, got End of File
-
-    ^
-Syntax: Expected one of: END IF READ WHILE WRITE Identifier : got End of File
-
-    ^
-Syntax: Expected END, got End of File
-
-    ^
-Syntax: Expected ., got End of File
-
+  9     BEGIN
+ 10     END;
+ 11   BEGIN
+ 12     y;
+ 13   END.

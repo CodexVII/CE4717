@@ -1,6 +1,6 @@
-  0  Br    14  
+  0  Br    13  
   1  Inc   1   
-  2  Br    12  
+  2  Br    11  
   3  Load  #20  
   4  Load  FP
   5  Store [SP]+3   
@@ -8,8 +8,11 @@
   7  Bsf
   8  Call  3   
   9  Rsf
- 10  Dec   10747940
- 11  Ret
- 12  Dec   1   
- 13  Ret
- 14  Halt
+ 10  Ret
+ 11  Dec   1   
+ 12  Ret
+ 13  Push  FP
+ 14  Bsf
+ 15  Call  1   
+ 16  Rsf
+ 17  Halt
