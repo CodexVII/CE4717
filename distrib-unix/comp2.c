@@ -1,4 +1,6 @@
+/*--------------------------------------------------------------------------*/
 /*                                                                          */
+/*       comp2.c                                                            */
 /*                                                                          */
 /*       Author: Ian Lodovica (13131567)                                    */
 /*                                                                          */
@@ -21,7 +23,7 @@
 #include "strtab.h"
 #include "code.h"
 
-#define PSTACK_SIZE 25		   /*  Stack size used for procedure params */
+#define PSTACK_SIZE 128 	   /*  Stack size used for procedure params */
 #define INIT_LOCALVAR_ADDR 3	   /*  Starting address for local vars      */
                                    /*  taking Static Link, Dynamic Link and */
                                    /*  Return Address memory locations into */
@@ -77,15 +79,15 @@ PRIVATE void ParseBlock( void );
 PRIVATE void ParseParameterList( SYMBOL *target );
 PRIVATE void ParseFormalParameter( void );
 PRIVATE void ParseSimpleStatement( void );
-PRIVATE void ParseRestOfStatement( SYMBOL *target ); /* changed from void */
+PRIVATE void ParseRestOfStatement( SYMBOL *target ); 
 PRIVATE void ParseProcCallList( SYMBOL *target );
 PRIVATE void ParseActualParameter( SYMBOL *target, int param );
 PRIVATE void ParseTerm( void );
 PRIVATE void ParseSubTerm( void );
 PRIVATE void ParseAssignment( void );
 PRIVATE void ParseWhileStatement( void );
-PRIVATE int ParseBooleanExpression( void ); /* now returns int */
-PRIVATE int ParseRelOp( void );		    /* now returns int */
+PRIVATE int ParseBooleanExpression( void );
+PRIVATE int ParseRelOp( void );		   
 PRIVATE void ParseIfStatement( void );
 PRIVATE void ParseReadStatement( void );
 PRIVATE void ParseWriteStatement( void );
@@ -97,8 +99,7 @@ PRIVATE void ParseOpPrec( int minPrec );
 PRIVATE void SetupOpPrecTables( void );
 PRIVATE void Push( SYMBOL *sym );
 PRIVATE SYMBOL *Pop( void );
-PRIVATE void ClearStack( void );
-PRIVATE void PrintStack( void );
+PRIVATE void ResetStack( void );
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -117,7 +118,7 @@ PUBLIC int main ( int argc, char *argv[] )
 	SetupOpPrecTables();
         CurrentToken = GetToken();
 	SetupSets();
-	ClearStack();
+	ResetStack();
         ParseProgram();
 	_Emit(I_HALT);
 	WriteCodeFile();
@@ -211,7 +212,7 @@ PRIVATE void ParseOpPrec( int minPrec )
 /*                                when adding to the symbol table.          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
-/*    Returns:      SYMBOL *newsptr                                         */
+/*    Returns:      SYMBOL *newsptr - pointer to symbol created.            */
 /*                                                                          */
 /*    Side Effects: Symbol table may be modified.                           */
 /*                                                                          */
@@ -508,7 +509,7 @@ PRIVATE void ParseParameterList( SYMBOL *target )
     }
   }
   target->pcount = pcount;	/* Assign pcount to procedure symbol        */
-  ClearStack();			/* house cleaning                           */
+  ResetStack();			/* house cleaning                           */
   Accept( RIGHTPARENTHESIS );
 }
 
@@ -708,14 +709,18 @@ PRIVATE void ParseReadStatement( void )
   Accept( IDENTIFIER );
   if( target != NULL ){
     if( target->type == STYPE_VARIABLE ){
+      /* global variables */
       _Emit( I_READ );
       Emit( I_STOREA, target->address ); 
     }else if( target->type == STYPE_LOCALVAR ){
+      /* local variables */
       dS = scope - target->scope;
       if( dS == 0 ){
+	/* Within the same scope */
 	_Emit( I_READ );
 	Emit( I_STOREFP, target->address );
       }else{
+	/* Outside of current scope, walk the link */
 	_Emit( I_LOADFP );
 	for( i = 0; i < dS-1; i++){
 	  _Emit( I_LOADSP );
@@ -724,8 +729,10 @@ PRIVATE void ParseReadStatement( void )
 	Emit( I_STORESP, target->address );
       }
     }else if( target->type == STYPE_VALUEPAR ){
+      /* value parameter */
       Emit( I_STOREFP, target->address );
     }else{
+      /* REF parameter */
       Emit( I_LOADFP, target->address );
       _Emit( I_READ );
       _Emit( I_STORESP );
@@ -742,14 +749,18 @@ PRIVATE void ParseReadStatement( void )
 
     if( target != NULL ){
       if( target->type == STYPE_VARIABLE ){
+	/* global variables */
 	_Emit( I_READ );
 	Emit( I_STOREA, target->address ); 
       }else if( target->type == STYPE_LOCALVAR ){
+	/* local variables */
 	dS = scope - target->scope;
 	if( dS == 0 ){
+	  /* Within the same scope */
 	  _Emit( I_READ );
 	  Emit( I_STOREFP, target->address );
 	}else{
+	  /* Outside of current scope, walk the link */
 	  _Emit( I_LOADFP );
 	  for( i = 0; i < dS-1; i++){
 	    _Emit( I_LOADSP );
@@ -758,8 +769,10 @@ PRIVATE void ParseReadStatement( void )
 	  Emit( I_STORESP, target->address );
 	}
       }else if( target->type == STYPE_VALUEPAR ){
+	/* value parameter */
 	Emit( I_STOREFP, target->address );
       }else{
+	/* REF parameter */
 	Emit( I_LOADFP, target->address );
 	_Emit( I_READ );
 	_Emit( I_STORESP );
@@ -769,21 +782,8 @@ PRIVATE void ParseReadStatement( void )
       KillCodeGeneration();
     }
   }
-    /* while( CurrentToken.code == COMMA ){ */
-  /*   Accept( COMMA ); */
-  /*   target = LookupSymbol(); */
-  /*   Accept( IDENTIFIER ); */
-
-  /*   if( target != NULL && target->type == STYPE_VARIABLE ){ */
-  /*     _Emit( I_READ ); */
-  /*     Emit( I_STOREA, target->address );  */
-  /*   }else{ */
-  /*     Error( "Undeclared Variable", CurrentToken.pos ); */
-  /*     KillCodeGeneration(); */
-  /*   } */
 
   Accept( RIGHTPARENTHESIS );
-
 }
 
 /*--------------------------------------------------------------------------*/
@@ -793,13 +793,15 @@ PRIVATE void ParseReadStatement( void )
 /*      <IfStatement>  :== "IF" <BooleanExpression> "THEN" <Block>          */
 /*                         ["ELSE" <Block>]                                 */
 /*                                                                          */
+/*       Makes use of batch patching to fix BRs                             */
+/*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Producess program code.       */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseIfStatement( void )
 {
@@ -825,7 +827,6 @@ PRIVATE void ParseIfStatement( void )
   Label1 = CurrentCodeAddress();
   BackPatch( L1BackPatchLoc, Label1 );
   
-  
   if( CurrentToken.code == ELSE ){
     Accept( ELSE );
     ParseBlock();
@@ -833,7 +834,6 @@ PRIVATE void ParseIfStatement( void )
     BackPatch( L2BackPatchLoc, Label2 );
   }
 }
-
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -865,6 +865,8 @@ PRIVATE void ParseSimpleStatement( void )
 /*                                                                          */
 /*      <WhileStatement>  :== "WHILE" <BooleanExpression> "DO" <Block>      */
 /*                                                                          */
+/*       Backpatching is used to loop through WHILE loops if the boolean    */
+/*       expression returns true.                                           */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
@@ -872,7 +874,7 @@ PRIVATE void ParseSimpleStatement( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseWhileStatement( void )
 {
@@ -899,9 +901,10 @@ PRIVATE void ParseWhileStatement( void )
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
-/*    Returns:      Nothing                                                 */
+/*    Returns:      int BackPatchAddr - gives the calling function the      */
+/*                      address required to BR properly.                    */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE int ParseBooleanExpression( void )
 {
@@ -922,12 +925,13 @@ PRIVATE int ParseBooleanExpression( void )
 /*                                                                          */
 /*      <RelOp>  :== "=" | "<=" | ">=" | "<" | ">"                          */
 /*                                                                          */
+/*      Uses the inverse boolean of the relative operator being parsed.     */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
-/*    Returns:      Nothing                                                 */
+/*    Returns:      int RelOpInstruction - Program code of the rel operator */
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
@@ -967,13 +971,13 @@ PRIVATE int ParseRelOp( void )
 /*      <RestOfStatement>  :== <ProcCallList> | <Assignment> | null         */
 /*                                                                          */
 /*                                                                          */
-/*    Inputs:       None                                                    */
+/*    Inputs:       SYMBOL *target - Procedure or variable symbol           */
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Program code produced         */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseRestOfStatement( SYMBOL *target ) 
 {
@@ -987,16 +991,23 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
     if( target != NULL && target->type == STYPE_PROCEDURE ){
       dS = scope -target->scope;
       if( dS == 0 ){
+	/* Within current scope */
 	_Emit( I_PUSHFP );
       }else{
+	/* Outside of current scope, walk the link */
 	_Emit( I_LOADFP );
 	for( i = 0; i < dS-1; i++){
 	  _Emit( I_LOADSP );
 	}
       }
+      /* Calls procedure */
       _Emit( I_BSF );
       Emit( I_CALL, target->address );
       _Emit( I_RSF );
+
+      /* If variables were pushed to the stack during the call then decrement 
+	 the stack pointer by the same amount after the call is finished.
+       */
       if( target->pcount > 0 ){
 	Emit( I_DEC, target->pcount );
       }
@@ -1016,8 +1027,10 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
 	/* local variables */
 	dS = scope - target->scope;
 	if( dS == 0 ){
+	  /* Within current scope */
 	  Emit( I_STOREFP, target->address );
 	}else{
+	  /* Outside of current scope, walk the link */
 	  _Emit( I_LOADFP );
 	  for( i = 0; i < dS-1; i++){
 	    _Emit( I_LOADSP );
@@ -1037,7 +1050,6 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
       KillCodeGeneration();
     }
   }
-
   /* do nothing on null string */
 }
 
@@ -1048,13 +1060,13 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
 /*      <ProcCallList>  :== "(" <ActualParameter> {"," <ActualParameter>}   */
 /*                          ")"                                             */
 /*                                                                          */
-/*    Inputs:       None                                                    */
+/*    Inputs:       SYMBOL *target - Procedure symbol                       */
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseProcCallList( SYMBOL *target )
 {
@@ -1082,31 +1094,40 @@ PRIVATE void ParseProcCallList( SYMBOL *target )
 /*      <ParseActualParameter>  :== <Variable> | <Expression>               */
 /*                                                                          */
 /*                                                                          */
-/*    Inputs:       None                                                    */
+/*    Inputs:       SYMBOL *target - Procedure symbol.                      */
 /*                                                                          */
+/*                  int param - Position of the current parameter being     */
+/*                              compiled during the procedure call.         */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseActualParameter( SYMBOL *target, int param )
 {
-  SYMBOL *p;
-  if( (target->ptypes & 1<<param) > 0){     /* must be REF */
-    p = LookupSymbol();
-    if( p->type == STYPE_LOCALVAR ){  /* using local var */
+  SYMBOL *parameter;
+
+  /* 1. Shifts 1 bit to the location of the param being passed
+     2. Logical AND with the target parameter types
+     3. If the result is greater than zero then the passed parameter must be REF
+  */
+  if( (target->ptypes & 1<<param) > 0){    
+    /* Reference parameter */
+    parameter = LookupSymbol();
+    if( parameter->type == STYPE_LOCALVAR ){  
+      /* local var */
       _Emit( I_PUSHFP );
-      Emit( I_LOADI, p->address );
+      Emit( I_LOADI, parameter->address );
       _Emit( I_ADD );
     }else{
-      Emit( I_LOADI, p->address );
+      /* global var */
+      Emit( I_LOADI, parameter->address );
     }
     Accept( IDENTIFIER );
-    printf("I'm a REF\n");
   }else{
-    printf("I'm a value\n");
-    ParseExpression();		/* must be value */
+    /* Value parameter */
+    ParseExpression();	       
   }
 }
 
@@ -1137,7 +1158,7 @@ PRIVATE void ParseExpression( void )
 /*                                                                          */
 /*    ParseAssignment implements                                            */
 /*                                                                          */
-/*      <Assignment>  :== "=" <Expression>                                  */
+/*      <Assignment>  :== ":=" <Expression>                                  */
 /*                                                                          */
 /*                                                                          */
 /*    Inputs:       None                                                    */
@@ -1167,7 +1188,8 @@ PRIVATE void ParseAssignment( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces product code if      */
+/*                  negate flag is present                                  */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseTerm( void )
 {
@@ -1197,7 +1219,7 @@ PRIVATE void ParseTerm( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces product code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseSubTerm( void ){
   int i, dS;
@@ -1218,22 +1240,28 @@ PRIVATE void ParseSubTerm( void ){
     var = LookupSymbol();	/* checks if variable is declared */
     Accept( IDENTIFIER );
     if( var != NULL ){
-      if( var->type == STYPE_VARIABLE){ /* global variables */
+      if( var->type == STYPE_VARIABLE){ 
+	/* global variables */
 	Emit( I_LOADA, var->address );
-      }else if( var->type == STYPE_LOCALVAR ){ /* local variables */
+      }else if( var->type == STYPE_LOCALVAR ){ 
+	/* local variables */
 	dS = scope - var->scope;
 	if( dS == 0 ){
+	  /* Within current scope */
 	  Emit( I_LOADFP, var->address );
 	}else{
+	  /* Outside curren scope, walk the link */
 	  _Emit( I_LOADFP );
 	  for( i = 0; i < dS-1; i++){
 	    _Emit( I_LOADSP );
 	  }
 	  Emit( I_LOADSP, var->address );
 	}
-      }else if( var->type == STYPE_VALUEPAR ){  /* value param */
+      }else if( var->type == STYPE_VALUEPAR ){  
+	/* value param */
 	Emit( I_LOADFP, var->address );
-      }else{	/* REF param */
+      }else{	
+	/* REF param */
 	Emit( I_LOADFP, var->address );
 	_Emit( I_LOADSP );
       }
@@ -1392,7 +1420,7 @@ PRIVATE SYMBOL *Pop( void )
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
-/*  ClearStack: Initializes the `paramStack` array for use.                 */
+/*  ResetStack: Initializes the `paramStack` array for use.                 */
 /*                                                                          */
 /*    Inputs:        None                                                   */
 /*                                                                          */
@@ -1403,11 +1431,10 @@ PRIVATE SYMBOL *Pop( void )
 /*    Side Effects:  None                                                   */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ClearStack( void )
+PRIVATE void ResetStack( void )
 {
   int i;
   for(i=0; i<PSTACK_SIZE; i++){
     paramStack[i] = NULL;
-
   }
 }

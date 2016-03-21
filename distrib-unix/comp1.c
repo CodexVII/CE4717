@@ -1,12 +1,15 @@
+/*--------------------------------------------------------------------------*/
 /*                                                                          */
+/*       comp1.c                                                            */
 /*                                                                          */
 /*       Author: Ian Lodovica (13131567)                                    */
 /*                                                                          */
 /*       Date: 17th of March 2016                                           */
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
-/*       Builds on top of parser2. Includes basic code generation without   */
-/*       taking procedures or local variables into account                  */
+/*       Builds on top of parser2. Includes basic code generation.          */
+/*       Does not support the used of local variables or calls to           */
+/*	 procedures multiple parameters.                                    */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 
@@ -70,15 +73,15 @@ PRIVATE void ParseBlock( void );
 PRIVATE void ParseParameterList( void );
 PRIVATE void ParseFormalParameter( void );
 PRIVATE void ParseSimpleStatement( void );
-PRIVATE void ParseRestOfStatement( SYMBOL *target ); /* changed from void */
+PRIVATE void ParseRestOfStatement( SYMBOL *target );
 PRIVATE void ParseProcCallList( void );
 PRIVATE void ParseActualParameter( void );
 PRIVATE void ParseTerm( void );
 PRIVATE void ParseSubTerm( void );
 PRIVATE void ParseAssignment( void );
 PRIVATE void ParseWhileStatement( void );
-PRIVATE int ParseBooleanExpression( void ); /* now returns int */
-PRIVATE int ParseRelOp( void );		    /* now returns int */
+PRIVATE int ParseBooleanExpression( void ); 
+PRIVATE int ParseRelOp( void );		    
 PRIVATE void ParseIfStatement( void );
 PRIVATE void ParseReadStatement( void );
 PRIVATE void ParseWriteStatement( void );
@@ -256,7 +259,7 @@ PRIVATE void MakeSymbolTableEntry( int symtype )
 /*                                                                          */
 /*    Returns:      SYMBOL *sptr - identifier as found in SymbolTable       */
 /*                                                                          */
-/*    Side Effects: None                                      */
+/*    Side Effects: None                                                    */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 PRIVATE SYMBOL *LookupSymbol( void )
@@ -406,17 +409,21 @@ PRIVATE void ParseProcDeclaration( void )
   }
   Accept( SEMICOLON );
 
+  /* START Declarations parser recovery */
   Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
   if( CurrentToken.code == VAR ){
     ParseDeclarations();
   }
-  
+  /* END Declarations parser recovery */
+
+  /* START ProcDeclarations parser recover */
   Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
   while( CurrentToken.code == PROCEDURE ){
     ParseProcDeclaration();
     Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
   }
-  
+  /* END ProcDeclarations parser recover */
+ 
   ParseBlock();
   Accept( SEMICOLON );
   RemoveSymbols( scope );
@@ -545,7 +552,7 @@ PRIVATE void ParseDeclarations( void )
 /*    ParseStatement implements                                             */
 /*                                                                          */
 /*      <Statement>  :== <SimpleStatement> | <WhileStatement> |             */
-/*                       <IfStatement> | <ReadStatement> | <riteStatement>  */
+/*                       <IfStatement> | <ReadStatement> | <writeStatement> */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
@@ -583,7 +590,7 @@ PRIVATE void ParseStatement( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseWriteStatement( void )
 {
@@ -608,6 +615,7 @@ PRIVATE void ParseWriteStatement( void )
 /*                                                                          */
 /*      <ReadStatement>  :== "READ" "(" <Variable> {"," <Variable>} ")"     */
 /*                                                                          */
+/*      Only allows for global variables                                    */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
@@ -615,7 +623,7 @@ PRIVATE void ParseWriteStatement( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseReadStatement( void )
 {
@@ -627,6 +635,7 @@ PRIVATE void ParseReadStatement( void )
   Accept( IDENTIFIER );
 
   if( target != NULL && target->type == STYPE_VARIABLE ){
+    /* global variable */
     _Emit( I_READ );
     Emit( I_STOREA, target->address ); 
   }else{
@@ -640,6 +649,7 @@ PRIVATE void ParseReadStatement( void )
     Accept( IDENTIFIER );
 
     if( target != NULL && target->type == STYPE_VARIABLE ){
+      /* global variable */
       _Emit( I_READ );
       Emit( I_STOREA, target->address ); 
     }else{
@@ -659,13 +669,15 @@ PRIVATE void ParseReadStatement( void )
 /*      <IfStatement>  :== "IF" <BooleanExpression> "THEN" <Block>          */
 /*                         ["ELSE" <Block>]                                 */
 /*                                                                          */
+/*       Makes use of batch patching to fix BRs                             */
+/*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Producess program code.       */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseIfStatement( void )
 {
@@ -731,6 +743,8 @@ PRIVATE void ParseSimpleStatement( void )
 /*                                                                          */
 /*      <WhileStatement>  :== "WHILE" <BooleanExpression> "DO" <Block>      */
 /*                                                                          */
+/*       Backpatching is used to loop through WHILE loops if the boolean    */
+/*       expression returns true.                                           */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
@@ -738,7 +752,7 @@ PRIVATE void ParseSimpleStatement( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseWhileStatement( void )
 {
@@ -765,9 +779,10 @@ PRIVATE void ParseWhileStatement( void )
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
-/*    Returns:      Nothing                                                 */
+/*    Returns:      int BackPatchAddr - gives the calling function the      */
+/*                      address required to BR properly.                    */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE int ParseBooleanExpression( void )
 {
@@ -788,12 +803,13 @@ PRIVATE int ParseBooleanExpression( void )
 /*                                                                          */
 /*      <RelOp>  :== "=" | "<=" | ">=" | "<" | ">"                          */
 /*                                                                          */
+/*      Uses the inverse boolean of the relative operator being parsed.     */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
-/*    Returns:      Nothing                                                 */
+/*    Returns:      int RelOpInstruction - Program code of the rel operator */
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
@@ -826,6 +842,7 @@ PRIVATE int ParseRelOp( void )
   return RelOpInstruction;
 }
 
+
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*    ParseRestOfStatement implements                                       */
@@ -833,20 +850,20 @@ PRIVATE int ParseRelOp( void )
 /*      <RestOfStatement>  :== <ProcCallList> | <Assignment> | null         */
 /*                                                                          */
 /*                                                                          */
-/*    Inputs:       SYMBOL *target - Identifier that's either a procedure   */
-/*                                   or variable.                           */
+/*    Inputs:       SYMBOL *target - Procedure symbol or variable symbol    */
+/*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Program code produced         */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseRestOfStatement( SYMBOL *target ) /* ParseRestOfStatement( SYMBOL *target ) */
+PRIVATE void ParseRestOfStatement( SYMBOL *target )
 {
   switch( CurrentToken.code )
   {
   case LEFTPARENTHESIS:
-    ParseProcCallList(); 	/* ProcCallList( target ) */
+    ParseProcCallList(); 	
   case SEMICOLON:
     if( target != NULL && target->type == STYPE_PROCEDURE ){
       Emit( I_CALL, target->address );
@@ -975,7 +992,8 @@ PRIVATE void ParseAssignment( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces product code if      */
+/*                  negate flag is present                                  */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseTerm( void )
 {
@@ -1005,7 +1023,7 @@ PRIVATE void ParseTerm( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces product code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseSubTerm( void ){
   SYMBOL *var;
@@ -1024,6 +1042,7 @@ PRIVATE void ParseSubTerm( void ){
     var = LookupSymbol();	/* checks if variable is declared */
     Accept( IDENTIFIER );
     if( var != NULL && var->type == STYPE_VARIABLE){
+      /* global variable */
       Emit( I_LOADA, var->address );
     }else{
       Error( "Undeclared Variable.", CurrentToken.pos );
