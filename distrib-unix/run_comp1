@@ -6,40 +6,9 @@
 make comp1
 test_path="tests/comp1"
 if (($? == 0)); then
-    if(($1 == 0)); then
-	./comp1 $test_path/test1.cpl $test_path/test1.output $test_path/test1
-	emacs $test_path/test1.output& 
-	emacs $test_path/test1&
-    elif(($1 == 1)); then
-	./comp1 $test_path/test2.cpl $test_path/test2.output $test_path/test2
-	emacs $test_path/test2.output& 
-	emacs $test_path/test2&
-    elif(($1 == 2)); then
-	./comp1 $test_path/test3.cpl $test_path/test3.output $test_path/test3
-	emacs $test_path/test3.output& 
-	echo here
-	emacs $test_path/test3&
-    elif(($1 == 3)); then
-	./comp1 $test_path/test4.cpl $test_path/test4.output $test_path/test4
-	emacs $test_path/test4.output& 
-	emacs $test_path/test4&
-    elif(($1 == 4)); then
-	./comp1 $test_path/test5.cpl $test_path/test5.output $test_path/test5
-	emacs $test_path/test5.output& 
-	emacs $test_path/test5&
-    elif(($1 == 5)); then
-	./comp1 $test_path/test6.cpl $test_path/test6.output $test_path/test6
-	emacs $test_path/test6.output& 
-	emacs $test_path/test6&
-    elif(($1 == 6)); then
-	./comp1 $test_path/test7.cpl $test_path/test7.output $test_path/test7
-	emacs $test_path/test7.output& 
-	emacs $test_path/test7&
-    elif(($1 == 7)); then
-	./comp1 $test_path/test8.cpl $test_path/test8.output $test_path/test8
-	emacs $test_path/test8.output& 
-	emacs $test_path/test8&
-    fi
+    ./comp1 $test_path/test$1.cpl $test_path/test$1.output $test_path/test$1
+    emacs $test_path/test$1.output& 
+    emacs $test_path/test$1&
 else
     echo Error while compiling comp1
 fi

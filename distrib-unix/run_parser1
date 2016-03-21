@@ -5,16 +5,8 @@
 
 make parser1
 if (($? == 0)); then
-    if(($1 == 0)); then
-	./parser1 tests/parser1/test1.cpl tests/parser1/test1.output
-	emacs tests/parser1/test1.output&
-    elif(($1 == 1)); then
-	./parser1 tests/parser1/test2.cpl tests/parser1/test2.output
-	emacs tests/parser1/test2.output&
-    elif(($1 == 2)); then
-	./parser1 tests/parser1/fibv1.prog tests/parser1/fibv1.output
-	emacs tests/parser1/fibv1.output&
-    fi
+    ./parser1 tests/parser1/test$1.cpl tests/parser1/test$1.output
+    emacs tests/parser1/test$1.output&
 else
     echo Error while compiling parser1
 fi

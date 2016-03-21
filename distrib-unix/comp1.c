@@ -111,7 +111,6 @@ PUBLIC int main ( int argc, char *argv[] )
         CurrentToken = GetToken();
 	SetupSets();
         ParseProgram();
-	DumpSymbols(scope);
 	_Emit(I_HALT);
 	WriteCodeFile();
         fclose( InputFile );
@@ -544,7 +543,9 @@ PRIVATE void ParseDeclarations( void )
   Accept( SEMICOLON );
   
   /* Increment memory space by amount of global variables declared */
-  Emit(I_INC, var_count);
+  if(scope == 1 ){
+    Emit(I_INC, var_count);
+  }
 }
 
 /*--------------------------------------------------------------------------*/
@@ -639,7 +640,7 @@ PRIVATE void ParseReadStatement( void )
     _Emit( I_READ );
     Emit( I_STOREA, target->address ); 
   }else{
-    Error( "Undeclared Variable", CurrentToken.pos );
+    Error( "Identifier not declared", CurrentToken.pos );
     KillCodeGeneration();
   }
   
@@ -653,7 +654,7 @@ PRIVATE void ParseReadStatement( void )
       _Emit( I_READ );
       Emit( I_STOREA, target->address ); 
     }else{
-      Error( "Undeclared Variable", CurrentToken.pos );
+      Error( "Identifier not declared", CurrentToken.pos );
       KillCodeGeneration();
     }
   }
@@ -1045,7 +1046,7 @@ PRIVATE void ParseSubTerm( void ){
       /* global variable */
       Emit( I_LOADA, var->address );
     }else{
-      Error( "Undeclared Variable.", CurrentToken.pos );
+      Error( "Identifier not declared.", CurrentToken.pos );
       KillCodeGeneration();
       ParseStatus = 1;
     }

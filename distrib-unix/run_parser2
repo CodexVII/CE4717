@@ -5,23 +5,10 @@
 
 make parser2
 if (($? == 0)); then
-    if(($1 == 0)); then
-	./parser2 tests/parser2/test1.cpl tests/parser2/test1.output
-	emacs tests/parser2/test1.output&
-    elif(($1 == 1)); then
-	./parser2 tests/parser2/test2.cpl tests/parser2/test2.output
-	emacs tests/parser2/test2.output&
-    elif(($1 == 2)); then
-	./parser2 tests/parser2/test3.cpl tests/parser2/test3.output
-	emacs tests/parser2/test3.output&
-    elif(($1 == 3)); then
-	./parser2 tests/parser2/test4.cpl tests/parser2/test4.output
-	emacs tests/parser2/test4.output&
-    elif(($1 == 4)); then
-	./parser2 tests/parser2/test5.cpl tests/parser2/test5.output
-	emacs tests/parser2/test5.output&
-    fi
+    ./parser2 tests/parser2/test$1.cpl tests/parser2/test$1.output
+    emacs tests/parser2/test$1.output&
 else
     echo Error while compiling parser2
 fi
+
 

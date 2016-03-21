@@ -1,0 +1,8 @@
+PROGRAM NegTest;
+  PROCEDURE Negate(x);
+    BEGIN   
+      WRITE(x);
+    END;
+  BEGIN	
+    Negate(-1);
+  END.

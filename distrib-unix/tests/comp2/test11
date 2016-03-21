@@ -1,0 +1,12 @@
+  0  Br    4   
+  1  Load  FP-1  
+  2  Write
+  3  Ret
+  4  Load  #1   
+  5  Neg
+  6  Push  FP
+  7  Bsf
+  8  Call  1   
+  9  Rsf
+ 10  Dec   1   
+ 11  Halt

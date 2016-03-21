@@ -1,0 +1,3 @@
+PROGRAM NegTest;
+  PROCEDURE Negate(x);
+    WRITE(x);

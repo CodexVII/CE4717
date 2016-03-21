@@ -416,7 +416,13 @@ PRIVATE void ParseProcDeclaration( void )
   Accept( IDENTIFIER );
   backpatch_addr = CurrentCodeAddress();
   Emit( I_BR, 0 );		/* BR to be backpatched */
-  procedure->address = CurrentCodeAddress();
+
+  if( procedure != NULL ){
+    procedure->address = CurrentCodeAddress();
+  }else{
+    Error( "Invalid procedure\n", CurrentToken.pos );
+    KillCodeGeneration();
+  }
   scope++;
 
   if( CurrentToken.code == LEFTPARENTHESIS ){
@@ -478,8 +484,6 @@ PRIVATE void ParseParameterList( SYMBOL *target )
   int i;
   SYMBOL *sym;			/* Contains parameter struct                */
 
-  target->ptypes = 0x0;		/* initialise the bitmask for use           */
-
   Accept( LEFTPARENTHESIS );  
   ParseFormalParameter();
   
@@ -496,20 +500,27 @@ PRIVATE void ParseParameterList( SYMBOL *target )
         in the mask if it's a REF parameter.
      4. Repeat until all parameters are exhausted.
    */
-  for(i = 0; i < pcount; i++){
-    sym = Pop();
-    if( sym != NULL){
-      sym->address = paddress--;
-      if( sym->type == STYPE_REFPAR ){
-	target->ptypes = target->ptypes | 0x01 << i;
-      }else{
-	/* STYPE_VALUEPAR is set to 0 explicitly here  */
-	target->ptypes = target->ptypes | 0x0 << i;
+  if( target != NULL ){
+    target->ptypes = 0x0;	/* initialise the bitmask for use           */
+    for(i = 0; i < pcount; i++){
+      sym = Pop();
+      if( sym != NULL){
+	sym->address = paddress--;
+	if( sym->type == STYPE_REFPAR ){
+	  target->ptypes = target->ptypes | 0x01 << i;
+	}else{
+	  /* STYPE_VALUEPAR is set to 0 explicitly here  */
+	  target->ptypes = target->ptypes | 0x0 << i;
+	}
       }
     }
+    target->pcount = pcount;	/* Assign pcount to procedure symbol        */
+    ResetStack();		/* house cleaning                           */
+  }else{
+    Error( "Invalid procedure", CurrentToken.pos );
+    KillCodeGeneration();
   }
-  target->pcount = pcount;	/* Assign pcount to procedure symbol        */
-  ResetStack();			/* house cleaning                           */
+
   Accept( RIGHTPARENTHESIS );
 }
 
@@ -583,7 +594,7 @@ PRIVATE void ParseBlock( void )
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
-/*    Returns:      Nothing                                                 */
+/*    Returns:      int var_count - number of variables declared            */
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
@@ -738,7 +749,7 @@ PRIVATE void ParseReadStatement( void )
       _Emit( I_STORESP );
     }
   }else{
-    Error( "Undeclared Variable", CurrentToken.pos );
+    Error( "Identifier not declared", CurrentToken.pos );
     KillCodeGeneration();
   }
   
@@ -778,7 +789,7 @@ PRIVATE void ParseReadStatement( void )
 	_Emit( I_STORESP );
       }
     }else{
-      Error( "Undeclared Variable", CurrentToken.pos );
+      Error( "Identifier not declared", CurrentToken.pos );
       KillCodeGeneration();
     }
   }
@@ -986,7 +997,7 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
   switch( CurrentToken.code )
   {
   case LEFTPARENTHESIS:
-    ParseProcCallList(target); 	/* ProcCallList( target ) */
+    ParseProcCallList(target); 	
   case SEMICOLON:
     if( target != NULL && target->type == STYPE_PROCEDURE ){
       dS = scope -target->scope;
@@ -1046,7 +1057,7 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
 	_Emit( I_STORESP );
       }
     }else{
-      Error( "Undeclared Variable", CurrentToken.pos );
+      Error( "Identifier not declared", CurrentToken.pos );
       KillCodeGeneration();
     }
   }
@@ -1070,14 +1081,21 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseProcCallList( SYMBOL *target )
 {
-  int paramloc = target->pcount - 1;
-  Accept( LEFTPARENTHESIS );
+  int paramloc;
   
-  ParseActualParameter( target, paramloc--);
+  if( target != NULL){
+    paramloc= target->pcount - 1;
+  }else{
+    Error( "Invalid Procedure", CurrentToken.pos );
+    KillCodeGeneration();
+  }
 
+  Accept( LEFTPARENTHESIS );
+  ParseActualParameter( target, paramloc--);
   while( CurrentToken.code == COMMA ){
     if( paramloc < 0 ){
-      Error( "Ran out of parameters", CurrentToken.pos );
+      Error( "Invalid parameter location. Ensure procedure is defined."
+	     , CurrentToken.pos );
       KillCodeGeneration();
     }
     Accept( COMMA );
@@ -1112,23 +1130,34 @@ PRIVATE void ParseActualParameter( SYMBOL *target, int param )
      2. Logical AND with the target parameter types
      3. If the result is greater than zero then the passed parameter must be REF
   */
-  if( (target->ptypes & 1<<param) > 0){    
-    /* Reference parameter */
-    parameter = LookupSymbol();
-    if( parameter->type == STYPE_LOCALVAR ){  
-      /* local var */
-      _Emit( I_PUSHFP );
-      Emit( I_LOADI, parameter->address );
-      _Emit( I_ADD );
+  if( target != NULL ){
+    if( (target->ptypes & 1<<param) > 0){    
+      /* Reference parameter */
+      parameter = LookupSymbol();
+      if( parameter != NULL ){
+	if( parameter->type == STYPE_LOCALVAR ){  
+	  /* local var */
+	  _Emit( I_PUSHFP );
+	  Emit( I_LOADI, parameter->address );
+	  _Emit( I_ADD );
+	}else{
+	  /* global var */
+	  Emit( I_LOADI, parameter->address );
+	}
+      }else{
+	Error( "Invalid Parameter", CurrentToken.pos );
+	KillCodeGeneration();
+      }
+      Accept( IDENTIFIER );
     }else{
-      /* global var */
-      Emit( I_LOADI, parameter->address );
+      /* Value parameter */
+      ParseExpression();	       
     }
-    Accept( IDENTIFIER );
   }else{
-    /* Value parameter */
-    ParseExpression();	       
+    Error( "Invalid Procedure", CurrentToken.pos );
+    KillCodeGeneration();
   }
+
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1158,7 +1187,7 @@ PRIVATE void ParseExpression( void )
 /*                                                                          */
 /*    ParseAssignment implements                                            */
 /*                                                                          */
-/*      <Assignment>  :== ":=" <Expression>                                  */
+/*      <Assignment>  :== ":=" <Expression>                                 */
 /*                                                                          */
 /*                                                                          */
 /*    Inputs:       None                                                    */
@@ -1266,7 +1295,7 @@ PRIVATE void ParseSubTerm( void ){
 	_Emit( I_LOADSP );
       }
     }else{
-      Error( "Undeclared Variable.", CurrentToken.pos );
+      Error( "Identifier not declared.", CurrentToken.pos );
       KillCodeGeneration();
       ParseStatus = 1;
     }
