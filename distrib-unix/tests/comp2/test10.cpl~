@@ -1,0 +1,2 @@
+PROGRAM Read;
+  VAR a, b;

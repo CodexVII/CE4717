@@ -1,0 +1,15 @@
+  1 PROGRAM ReadTest;
+  2   VAR a, ab;
+  3   PROCEDURE y(REF x, REF w, z);
+  4     VAR b;
+  5     BEGIN
+  6       READ(b);
+  7       x := x + b;
+  8       w := w*2; 
+  9     END;
+ 10   BEGIN
+ 11     READ(a);
+ 12     ab := 500;
+ 13     y(a, ab, ab/a);
+ 14     WRITE(a, ab);
+ 15   END.

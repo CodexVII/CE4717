@@ -4,7 +4,7 @@
 /*                                                                          */
 /*       Author: Ian Lodovica (13131567)                                    */
 /*                                                                          */
-/*                                                                          */
+/*       Date: 16th of February 2016                                        */
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*       An illustration of the use of the character handler and scanner    */

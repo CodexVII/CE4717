@@ -2,7 +2,7 @@
 /*                                                                          */
 /*       Author: Ian Lodovica (13131567)                                    */
 /*                                                                          */
-/*                                                                          */
+/*       Date: 20th of March 2016                                           */
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*       Builds on top of parser2. Includes basic code generation without   */
@@ -21,7 +21,11 @@
 #include "strtab.h"
 #include "code.h"
 
-#define PSTACK_SIZE 25
+#define PSTACK_SIZE 25		   /*  Stack size used for procedure params */
+#define INIT_LOCALVAR_ADDR 3	   /*  Starting address for local vars      */
+                                   /*  taking Static Link, Dynamic Link and */
+                                   /*  Return Address memory locations into */
+                                   /*  account.                             */
 
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
@@ -51,9 +55,9 @@ PRIVATE SET StatementFS;           /*  Convinience set for block parsing    */
 PRIVATE int scope = 1;		   /*  Contains scope of variables          */
                                    /*  not too concenred with it in comp1   */
 
-int prec[256];			   /* Table of operator precedences.        */
-int operatorInstruction[256];      /* Complementary table to prec           */
-SYMBOL *paramStack[PSTACK_SIZE];   /* Manages temp stack for proc params    */
+PRIVATE int prec[256];		   /* Table of operator precedences.        */
+PRIVATE int operatorInstruction[256];    /* Complementary table to prec     */
+PRIVATE SYMBOL *paramStack[PSTACK_SIZE]; /* Temp stack for proc params      */
 
 
 /*--------------------------------------------------------------------------*/
@@ -91,21 +95,20 @@ PRIVATE SYMBOL *MakeSymbolTableEntry( int symtype, int *varaddress );
 PRIVATE SYMBOL *LookupSymbol( void );
 PRIVATE void ParseOpPrec( int minPrec );
 PRIVATE void SetupOpPrecTables( void );
-
 PRIVATE void Push( SYMBOL *sym );
 PRIVATE SYMBOL *Pop( void );
 PRIVATE void ClearStack( void );
 PRIVATE void PrintStack( void );
+
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
-/*  Main: comp1 entry point.                                                */
+/*  Main: comp2 entry point.                                                */
 /*                                                                          */
 /*      Initializes files that are passed in as arguments. Sets up          */
 /*      tables and sets. Calls to parse the program and then write          */
 /*      the accompanying assembly code.                                     */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-
 PUBLIC int main ( int argc, char *argv[] )
 {
     if ( OpenFiles( argc, argv ) )  {
@@ -365,19 +368,23 @@ PRIVATE void ParseProgram( void )
     Accept( IDENTIFIER );
     Accept( SEMICOLON );
 
+    /* START Declarations parser recovery */
     Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
     if( CurrentToken.code == VAR ){
       Emit( I_INC, ParseDeclarations() );
     }
+    /* END Declarations parser recovery */    
     
+    /* START ProcDeclrations parser recovery */
     Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
     while( CurrentToken.code == PROCEDURE ){
       ParseProcDeclaration();
       Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
     }
+    /* END ProcDeclrations parser recovery */
 
     ParseBlock();
-    Accept( ENDOFPROGRAM );     /* Token "." has name ENDOFPROGRAM          */
+    Accept( ENDOFPROGRAM );
 }
 
 /*--------------------------------------------------------------------------*/
@@ -395,11 +402,11 @@ PRIVATE void ParseProgram( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseProcDeclaration( void )
 {
-  int backpatch_addr;
+  int backpatch_addr;	       
   int var_count = 0;
   SYMBOL *procedure;
 
@@ -407,7 +414,7 @@ PRIVATE void ParseProcDeclaration( void )
   procedure = MakeSymbolTableEntry( STYPE_PROCEDURE, NULL );
   Accept( IDENTIFIER );
   backpatch_addr = CurrentCodeAddress();
-  Emit( I_BR, 0 );
+  Emit( I_BR, 0 );		/* BR to be backpatched */
   procedure->address = CurrentCodeAddress();
   scope++;
 
@@ -416,20 +423,26 @@ PRIVATE void ParseProcDeclaration( void )
   }
   Accept( SEMICOLON );
 
+  /* START Declarations parser recovery  */
   Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
   if( CurrentToken.code == VAR ){
     var_count = ParseDeclarations();
-    Emit( I_INC, var_count );
+    Emit( I_INC, var_count );	/* Preserve memory space for variables */
   }
-  
+  /* END Declarations parser recovery  */  
+
+  /* START ProcDecalrations parser recovery  */
   Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
   while( CurrentToken.code == PROCEDURE ){
     ParseProcDeclaration();
     Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
   }
+  /* END ProcDecalrations parser recovery  */
   
   ParseBlock();
   Accept( SEMICOLON );
+
+  /* Decrement SP if local variables were used in the procedure */
   if( var_count > 0 ){
     Emit( I_DEC, var_count );
   }
@@ -446,21 +459,23 @@ PRIVATE void ParseProcDeclaration( void )
 /*      <ParameterList>  :== "(" <FormalParameter> {"," <FormalParameter>}  */
 /*                           ")"                                            */
 /*                                                                          */
+/*       Bitwise shifting is used to produce the bitmask required to        */
+/*       verify if a parameter is STYPE_VALUEPAR or STYPE_REFPAR.           */
 /*                                                                          */
-/*    Inputs:       None                                                    */
+/*    Inputs:       SYMBOL *target - Pointer to procedure being compiled    */
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseParameterList( SYMBOL *target )
 {
-  int pcount = 1;		/* holds the count for total params in proc */
-  int paddress = -1;		/* addr assigned to params in proc          */
+  int pcount = 1;		/* Holds the count for total params in proc */
+  int paddress = -1;		/* Addr assigned to params in proc          */
   int i;
-  SYMBOL *sym;
+  SYMBOL *sym;			/* Contains parameter struct                */
 
   target->ptypes = 0x0;		/* initialise the bitmask for use           */
 
@@ -472,7 +487,14 @@ PRIVATE void ParseParameterList( SYMBOL *target )
     ParseFormalParameter();
     pcount++;
   }
-
+  
+  /* 1. Get the top of the parameter stack. 
+     2. Asssign an address to the parameter starting from -1 and
+        counting down
+     3. Find the type of the variable and set the appropriate bit 
+        in the mask if it's a REF parameter.
+     4. Repeat until all parameters are exhausted.
+   */
   for(i = 0; i < pcount; i++){
     sym = Pop();
     if( sym != NULL){
@@ -480,13 +502,13 @@ PRIVATE void ParseParameterList( SYMBOL *target )
       if( sym->type == STYPE_REFPAR ){
 	target->ptypes = target->ptypes | 0x01 << i;
       }else{
+	/* STYPE_VALUEPAR is set to 0 explicitly here  */
 	target->ptypes = target->ptypes | 0x0 << i;
       }
     }
   }
   target->pcount = pcount;	/* Assign pcount to procedure symbol        */
-  printf("pcount: %d, ptypes: %x\n", target->pcount, target->ptypes);
-  ClearStack();			/* house cleaning, likely unecessary        */
+  ClearStack();			/* house cleaning                           */
   Accept( RIGHTPARENTHESIS );
 }
 
@@ -496,6 +518,7 @@ PRIVATE void ParseParameterList( SYMBOL *target )
 /*                                                                          */
 /*      <FormalParameter>  :== ["REF"] <Variable>                           */
 /*                                                                          */
+/*      Pushes a parameter symbol to the top of the `paramStack`            */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
@@ -503,7 +526,7 @@ PRIVATE void ParseParameterList( SYMBOL *target )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Parameter stack modified      */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseFormalParameter( void )
 {
@@ -536,12 +559,14 @@ PRIVATE void ParseBlock( void )
 {
   Accept( BEGIN );
   
+  /* START Statement parser recovery */
   Synchronise( &StatementFS_aug, &StatementFBS );
   while( InSet(&StatementFS, CurrentToken.code) ){
     ParseStatement();
     Accept( SEMICOLON );
     Synchronise( &StatementFS_aug, &StatementFBS );
   }
+  /* END Statement parser recovery */
 
   Accept( END );
 }
@@ -563,14 +588,16 @@ PRIVATE void ParseBlock( void )
 /*--------------------------------------------------------------------------*/
 PRIVATE int ParseDeclarations( void )
 {
-  int var_count = 1; 		/* at least 1 global if this func is called */
+  int var_count = 1; 		/* At least 1 global if this func is called */
   int varaddress = 0;		/* Initialize to 0 for globals              */
 
   Accept( VAR );
-  if( scope == 1 ){
+  if( scope == 1 ){		
+    /* Global scope so variable addresses can start at 0 */
     MakeSymbolTableEntry( STYPE_VARIABLE, &varaddress );
   }else{
-    varaddress = 3;             /* account for static, dynamic and ret addr */
+    /* Local scope so varaddress must start from INIT_LOCALVAR_ADDR  */
+    varaddress = INIT_LOCALVAR_ADDR;           
     MakeSymbolTableEntry( STYPE_LOCALVAR, &varaddress );
   }
 
@@ -628,13 +655,15 @@ PRIVATE void ParseStatement( void )
 /*      <WriteStatement>  :== "WRITE" "(" <Expression> {"," <Expression>}   */
 /*                            ")"                                           */
 /*                                                                          */
+/*      Writes the value at the top of the stack to the user.               */
+/*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */
 /*    Outputs:      None                                                    */
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseWriteStatement( void )
 {
@@ -666,19 +695,41 @@ PRIVATE void ParseWriteStatement( void )
 /*                                                                          */
 /*    Returns:      Nothing                                                 */
 /*                                                                          */
-/*    Side Effects: Lookahead token advanced.                               */
+/*    Side Effects: Lookahead token advanced. Produces program code.        */
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseReadStatement( void )
 {
+  int i, dS;
   SYMBOL *target;
 
   Accept( READ );
   Accept( LEFTPARENTHESIS );
   target = LookupSymbol();  	/* Verify identifier has been declared */
   Accept( IDENTIFIER );
-  if( target != NULL && target->type == STYPE_VARIABLE ){
-    _Emit( I_READ );
-    Emit( I_STOREA, target->address ); 
+  if( target != NULL ){
+    if( target->type == STYPE_VARIABLE ){
+      _Emit( I_READ );
+      Emit( I_STOREA, target->address ); 
+    }else if( target->type == STYPE_LOCALVAR ){
+      dS = scope - target->scope;
+      if( dS == 0 ){
+	_Emit( I_READ );
+	Emit( I_STOREFP, target->address );
+      }else{
+	_Emit( I_LOADFP );
+	for( i = 0; i < dS-1; i++){
+	  _Emit( I_LOADSP );
+	}
+	_Emit( I_READ );
+	Emit( I_STORESP, target->address );
+      }
+    }else if( target->type == STYPE_VALUEPAR ){
+      Emit( I_STOREFP, target->address );
+    }else{
+      Emit( I_LOADFP, target->address );
+      _Emit( I_READ );
+      _Emit( I_STORESP );
+    }
   }else{
     Error( "Undeclared Variable", CurrentToken.pos );
     KillCodeGeneration();
@@ -689,15 +740,48 @@ PRIVATE void ParseReadStatement( void )
     target = LookupSymbol();
     Accept( IDENTIFIER );
 
-    if( target != NULL && target->type == STYPE_VARIABLE ){
-      _Emit( I_READ );
-      Emit( I_STOREA, target->address ); 
+    if( target != NULL ){
+      if( target->type == STYPE_VARIABLE ){
+	_Emit( I_READ );
+	Emit( I_STOREA, target->address ); 
+      }else if( target->type == STYPE_LOCALVAR ){
+	dS = scope - target->scope;
+	if( dS == 0 ){
+	  _Emit( I_READ );
+	  Emit( I_STOREFP, target->address );
+	}else{
+	  _Emit( I_LOADFP );
+	  for( i = 0; i < dS-1; i++){
+	    _Emit( I_LOADSP );
+	  }
+	  _Emit( I_READ );
+	  Emit( I_STORESP, target->address );
+	}
+      }else if( target->type == STYPE_VALUEPAR ){
+	Emit( I_STOREFP, target->address );
+      }else{
+	Emit( I_LOADFP, target->address );
+	_Emit( I_READ );
+	_Emit( I_STORESP );
+      }
     }else{
       Error( "Undeclared Variable", CurrentToken.pos );
       KillCodeGeneration();
     }
   }
-  
+    /* while( CurrentToken.code == COMMA ){ */
+  /*   Accept( COMMA ); */
+  /*   target = LookupSymbol(); */
+  /*   Accept( IDENTIFIER ); */
+
+  /*   if( target != NULL && target->type == STYPE_VARIABLE ){ */
+  /*     _Emit( I_READ ); */
+  /*     Emit( I_STOREA, target->address );  */
+  /*   }else{ */
+  /*     Error( "Undeclared Variable", CurrentToken.pos ); */
+  /*     KillCodeGeneration(); */
+  /*   } */
+
   Accept( RIGHTPARENTHESIS );
 
 }
@@ -925,9 +1009,11 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
   default: 
     ParseAssignment();
     if( target != NULL){
-      if( target->type == STYPE_VARIABLE){ /* global variables */
+      if( target->type == STYPE_VARIABLE){ 
+	/* global variables */
 	Emit( I_STOREA, target->address );
-      }else if( target->type == STYPE_LOCALVAR ){ /* local variables */
+      }else if( target->type == STYPE_LOCALVAR ){ 
+	/* local variables */
 	dS = scope - target->scope;
 	if( dS == 0 ){
 	  Emit( I_STOREFP, target->address );
@@ -938,9 +1024,11 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
 	  }
 	  Emit( I_STORESP, target->address );
 	}
-      }else if( target->type == STYPE_VALUEPAR ){ /* value param */
+      }else if( target->type == STYPE_VALUEPAR ){ 
+	/* value param */
 	Emit( I_STOREFP, target->address );
-      }else{			/* REF param */
+      }else{			
+	/* REF param */
 	Emit( I_LOADFP, target->address );
 	_Emit( I_STORESP );
       }
@@ -1222,10 +1310,9 @@ PRIVATE void Accept( int ExpectedToken )
 /*    Returns:      Boolean success flag (i.e., an "int":  1 or 0)          */
 /*                                                                          */
 /*    Side Effects: If successful, modifies globals "InputFile",            */
-/*                  "ListingFile" and "CodeFile"                             */
+/*                  "ListingFile" and "CodeFile"                            */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-
 PRIVATE int  OpenFiles( int argc, char *argv[] )
 {
 
@@ -1254,6 +1341,21 @@ PRIVATE int  OpenFiles( int argc, char *argv[] )
     return 1;
 }
 
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  Push: Pushes the passed SYMBOL struct to the top of the procedure       */
+/*               parameter stack, `paramStack'                              */
+/*                                                                          */
+/*    Inputs:        SYMBOL *sym - Parameter symbol.                        */
+/*                                                                          */
+/*    Outputs:       None                                                   */
+/*                                                                          */
+/*    Returns:       None                                                   */
+/*                                                                          */
+/*    Side Effects:  All elements in the parameter stack is moved down up   */
+/*                   by a single index.                                     */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 PRIVATE void Push( SYMBOL *sym )
 {
   int i;
@@ -1263,6 +1365,21 @@ PRIVATE void Push( SYMBOL *sym )
   paramStack[0] = sym;
 }
 
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  Pop: Pops the element at index 0 of the `paramStack` array. This symbol */
+/*            contains the parameter's name, address and type.              */
+/*                                                                          */
+/*    Inputs:        None                                                   */
+/*                                                                          */
+/*    Outputs:       None                                                   */
+/*                                                                          */
+/*    Returns:       Element at index 0 of `paramStack` array               */
+/*                                                                          */
+/*    Side Effects:  All elements in the parameter stack is moved down      */
+/*                   by a single index.                                     */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 PRIVATE SYMBOL *Pop( void )
 {
   int i;
@@ -1273,22 +1390,24 @@ PRIVATE SYMBOL *Pop( void )
   return sym;
 }
 
+/*--------------------------------------------------------------------------*/
+/*                                                                          */
+/*  ClearStack: Initializes the `paramStack` array for use.                 */
+/*                                                                          */
+/*    Inputs:        None                                                   */
+/*                                                                          */
+/*    Outputs:       None                                                   */
+/*                                                                          */
+/*    Returns:       None                                                   */
+/*                                                                          */
+/*    Side Effects:  None                                                   */
+/*                                                                          */
+/*--------------------------------------------------------------------------*/
 PRIVATE void ClearStack( void )
 {
   int i;
   for(i=0; i<PSTACK_SIZE; i++){
     paramStack[i] = NULL;
 
-  }
-}
-
-PRIVATE void PrintStack( void )
-{
-  int i;
-  for(i=0; i<PSTACK_SIZE; i++){
-    if( paramStack[i] != NULL ){
-      printf("Element: %d, Name: %s\n", 
-	     i, paramStack[i]->s);
-    }
   }
 }

@@ -2,7 +2,7 @@
 /*                                                                          */
 /*       Author: Ian Lodovica (13131567)                                    */
 /*                                                                          */
-/*                                                                          */
+/*       Date: 17th of March 2016                                           */
 /*--------------------------------------------------------------------------*/
 /*                                                                          */
 /*       Builds on top of parser2. Includes basic code generation without   */
@@ -358,17 +358,21 @@ PRIVATE void ParseProgram( void )
     Accept( IDENTIFIER );
     Accept( SEMICOLON );
 
+    /* START Declarations parser recovery */
     Synchronise(&DeclarationsFS_aug, &DeclarationsFBS);
     if( CurrentToken.code == VAR ){
       ParseDeclarations();
     }
+    /* END Declarations parser recovery */    
     
+    /* START ProcDeclrations parser recovery */
     Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
     while( CurrentToken.code == PROCEDURE ){
       ParseProcDeclaration();
       Synchronise(&ProcDeclarationFS_aug, &ProcDeclarationFBS);
     }
-   
+    /* END ProcDeclrations parser recovery */
+
     ParseBlock();
     Accept( ENDOFPROGRAM );     /* Token "." has name ENDOFPROGRAM          */
 }
