@@ -1,0 +1,4 @@
+PROGRAM PassLocalByRef;
+  PROCEDURE x;
+    VAR x1;
+      PROCEDURE square( REF a );

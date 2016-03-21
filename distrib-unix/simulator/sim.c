@@ -23,7 +23,7 @@
 
 #define   MAXTRACE     20       /* max number of instructins to trace 
                                    in one go                            */
-#define   MAXEXECUTE 1000       /* max number of instructions to 
+#define   MAXEXECUTE 20000       /* max number of instructions to 
                                    execute (without tracing) in one go  */
 #define   MAXDATA     100       /* max number of words of data memory
                                    to display in one go                 */

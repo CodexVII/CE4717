@@ -75,7 +75,7 @@ PRIVATE void ParseFormalParameter( void );
 PRIVATE void ParseSimpleStatement( void );
 PRIVATE void ParseRestOfStatement( SYMBOL *target ); /* changed from void */
 PRIVATE void ParseProcCallList( SYMBOL *target );
-PRIVATE void ParseActualParameter( void );
+PRIVATE void ParseActualParameter( SYMBOL *target, int param );
 PRIVATE void ParseTerm( void );
 PRIVATE void ParseSubTerm( void );
 PRIVATE void ParseAssignment( void );
@@ -263,7 +263,7 @@ PRIVATE SYMBOL *MakeSymbolTableEntry( int symtype, int *varaddress )
 /*                                                                          */
 /*    Returns:      SYMBOL *sptr - identifier as found in SymbolTable       */
 /*                                                                          */
-/*    Side Effects: None                                      */
+/*    Side Effects: None                                                    */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 PRIVATE SYMBOL *LookupSymbol( void )
@@ -462,24 +462,30 @@ PRIVATE void ParseParameterList( SYMBOL *target )
   int i;
   SYMBOL *sym;
 
+  target->ptypes = 0x0;		/* initialise the bitmask for use           */
+
   Accept( LEFTPARENTHESIS );  
   ParseFormalParameter();
-
+  
   while( CurrentToken.code == COMMA ){
     Accept( COMMA );
     ParseFormalParameter();
     pcount++;
   }
 
-  PrintStack();
-
   for(i = 0; i < pcount; i++){
     sym = Pop();
     if( sym != NULL){
       sym->address = paddress--;
+      if( sym->type == STYPE_REFPAR ){
+	target->ptypes = target->ptypes | 0x01 << i;
+      }else{
+	target->ptypes = target->ptypes | 0x0 << i;
+      }
     }
   }
   target->pcount = pcount;	/* Assign pcount to procedure symbol        */
+  printf("pcount: %d, ptypes: %x\n", target->pcount, target->ptypes);
   ClearStack();			/* house cleaning, likely unecessary        */
   Accept( RIGHTPARENTHESIS );
 }
@@ -509,7 +515,6 @@ PRIVATE void ParseFormalParameter( void )
     Push( MakeSymbolTableEntry(STYPE_VALUEPAR, NULL) );
     Accept( IDENTIFIER );
   }
-
 }
 
 /*--------------------------------------------------------------------------*/
@@ -965,13 +970,18 @@ PRIVATE void ParseRestOfStatement( SYMBOL *target )
 /*--------------------------------------------------------------------------*/
 PRIVATE void ParseProcCallList( SYMBOL *target )
 {
+  int paramloc = target->pcount - 1;
   Accept( LEFTPARENTHESIS );
   
-  ParseActualParameter();
+  ParseActualParameter( target, paramloc--);
 
   while( CurrentToken.code == COMMA ){
+    if( paramloc < 0 ){
+      Error( "Ran out of parameters", CurrentToken.pos );
+      KillCodeGeneration();
+    }
     Accept( COMMA );
-    ParseActualParameter();
+    ParseActualParameter( target, paramloc-- );
   }
 
   Accept( RIGHTPARENTHESIS );
@@ -992,9 +1002,24 @@ PRIVATE void ParseProcCallList( SYMBOL *target )
 /*                                                                          */
 /*    Side Effects: Lookahead token advanced.                               */
 /*--------------------------------------------------------------------------*/
-PRIVATE void ParseActualParameter( void )
+PRIVATE void ParseActualParameter( SYMBOL *target, int param )
 {
-  ParseExpression();
+  SYMBOL *p;
+  if( (target->ptypes & 1<<param) > 0){     /* must be REF */
+    p = LookupSymbol();
+    if( p->type == STYPE_LOCALVAR ){  /* using local var */
+      _Emit( I_PUSHFP );
+      Emit( I_LOADI, p->address );
+      _Emit( I_ADD );
+    }else{
+      Emit( I_LOADI, p->address );
+    }
+    Accept( IDENTIFIER );
+    printf("I'm a REF\n");
+  }else{
+    printf("I'm a value\n");
+    ParseExpression();		/* must be value */
+  }
 }
 
 /*--------------------------------------------------------------------------*/

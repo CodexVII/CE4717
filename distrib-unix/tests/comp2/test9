@@ -1,0 +1,30 @@
+  0  Br    25  
+  1  Inc   1   
+  2  Br    11  
+  3  Load  FP-1  
+  4  Load  [SP]
+  5  Load  FP-1  
+  6  Load  [SP]
+  7  Mult
+  8  Load  FP-1  
+  9  Store [SP]
+ 10  Ret
+ 11  Load  #4   
+ 12  Store FP+3   
+ 13  Push  FP
+ 14  Load  #3   
+ 15  Add
+ 16  Push  FP
+ 17  Bsf
+ 18  Call  3   
+ 19  Rsf
+ 20  Dec   1   
+ 21  Load  FP+3   
+ 22  Write
+ 23  Dec   1   
+ 24  Ret
+ 25  Push  FP
+ 26  Bsf
+ 27  Call  1   
+ 28  Rsf
+ 29  Halt

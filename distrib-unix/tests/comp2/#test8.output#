@@ -1,10 +1,11 @@
   1 PROGRAM testcopy;
   2   VAR a, b;
-  3     PROCEDURE copy(x, REF y);
+  3     PROCEDURE copy(x, REF y, REF z);
   4     BEGIN
   5       y := x;
+  
   6     END;
   7   BEGIN
   8     a := 20;
-  9     copy(a+10, b);
+  9     copy(a+20, b, a);
  10   END.
