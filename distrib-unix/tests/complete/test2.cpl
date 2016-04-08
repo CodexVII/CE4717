@@ -1,0 +1,9 @@
+       PROGRAM TEST;
+       VAR X;
+       BEGIN
+           X := 5;
+           WHILE X >= 0 DO BEGIN
+               WRITE( X );
+               X := X - 1;
+           END;
+       END.

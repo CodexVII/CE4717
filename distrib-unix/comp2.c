@@ -635,7 +635,7 @@ PRIVATE int ParseDeclarations( void )
 /*    ParseStatement implements                                             */
 /*                                                                          */
 /*      <Statement>  :== <SimpleStatement> | <WhileStatement> |             */
-/*                       <IfStatement> | <ReadStatement> | <riteStatement>  */
+/*                       <IfStatement> | <ReadStatement> | <WriteStatement> */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */

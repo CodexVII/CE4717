@@ -1,0 +1,34 @@
+  1 !
+  2 !   fibv1.prog 
+  3 !
+  4 !   Fibonacci calculation using recursion.
+  5 !   Note the use of local variables being
+  6 !   passed to the recursions as reference
+  7 !   parameters.
+  8 !
+  9 !   A good test of the full compiler comp2.
+ 10 !
+ 11 PROGRAM fibv1;
+ 12   VAR n, nMax, fibN;
+ 13 
+ 14   PROCEDURE fib(n, REF acc);
+ 15     VAR fm1, fm2;
+ 16     BEGIN
+ 17       IF n <= 2 THEN BEGIN acc := 1; END
+ 18       ELSE BEGIN
+ 19         fib(n-1,fm1);
+ 20         fib(n-2,fm2);
+ 21         acc := fm1 + fm2;
+ 22       END;
+ 23     END;
+ 24 
+ 25   ! Main program starts here.
+ 26   BEGIN
+ 27     READ(nMax);      ! Read max value of n
+ 28     n := 1;          ! Write out the first n Fibonacci numbers
+ 29     WHILE n <= nMax DO BEGIN
+ 30       fib(n, fibN);    
+ 31       WRITE(fibN);
+ 32       n := n + 1;
+ 33     END;
+ 34   END.

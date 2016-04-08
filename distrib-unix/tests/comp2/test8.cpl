@@ -6,5 +6,5 @@ PROGRAM testcopy;
     END;
   BEGIN
     a := 20;
-    copy(a+10, b);
+    copy(a+10, 5);
   END.

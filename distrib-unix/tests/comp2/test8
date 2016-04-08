@@ -1,18 +1,2 @@
-  0  Inc   2   
-  1  Br    6   
-  2  Load  FP-2  
-  3  Load  FP-1  
-  4  Store [SP]
-  5  Ret
-  6  Load  #20  
-  7  Store 0   
-  8  Load  0   
-  9  Load  #10  
- 10  Add
- 11  Load  #1   
- 12  Push  FP
- 13  Bsf
- 14  Call  2   
- 15  Rsf
- 16  Dec   2   
- 17  Halt
+;; Errors detected in input file, no code
+;; generated

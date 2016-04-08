@@ -10,5 +10,5 @@
 Syntax: Expected Identifier, got Integer Constant
 
                  ^
-Undeclared Variable
+Identifier not declared
   9 END.

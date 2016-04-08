@@ -1,0 +1,14 @@
+PROGRAM p7;
+  PROCEDURE y;
+    VAR y1;
+      PROCEDURE z;
+        BEGIN
+	  y1 := 20;
+	  z;
+	END;
+    BEGIN
+      z;
+    END;
+  BEGIN
+    y;
+  END.

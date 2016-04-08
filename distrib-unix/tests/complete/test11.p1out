@@ -1,0 +1,15 @@
+  1 PROGRAM PassLocalByRef;
+  2   PROCEDURE x;
+  3     VAR x1;
+  4       PROCEDURE square( REF a );
+  5         BEGIN
+  6           a := a*a;
+  7         END;
+  8     BEGIN
+  9       x1 := 4;
+ 10       square( x1 );
+ 11       WRITE( x1 );
+ 12     END;
+ 13   BEGIN
+ 14     x;
+ 15   END.

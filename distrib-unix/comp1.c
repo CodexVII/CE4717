@@ -101,7 +101,6 @@ PRIVATE void SetupOpPrecTables( void );
 /*      the accompanying assembly code.                                     */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-
 PUBLIC int main ( int argc, char *argv[] )
 {
     if ( OpenFiles( argc, argv ) )  {
@@ -553,7 +552,7 @@ PRIVATE void ParseDeclarations( void )
 /*    ParseStatement implements                                             */
 /*                                                                          */
 /*      <Statement>  :== <SimpleStatement> | <WhileStatement> |             */
-/*                       <IfStatement> | <ReadStatement> | <writeStatement> */
+/*                       <IfStatement> | <ReadStatement> | <WriteStatement> */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */

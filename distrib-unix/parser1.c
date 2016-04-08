@@ -36,7 +36,6 @@
 
 PRIVATE FILE *InputFile;           /*  CPL source comes from here.          */
 PRIVATE FILE *ListFile;            /*  For nicely-formatted syntax errors.  */
-
 PRIVATE TOKEN  CurrentToken;       /*  Parser lookahead token.  Updated by  */
                                    /*  routine Accept (below).  Must be     */
                                    /*  initialised before parser starts.    */
@@ -53,7 +52,6 @@ PRIVATE void ParseStatement( void );
 PRIVATE void ParseExpression( void );
 PRIVATE void Accept( int code );
 PRIVATE void ReadToEndOfFile( void );
-
 PRIVATE void ParseDeclarations( void );
 PRIVATE void ParseProcDeclaration( void );
 PRIVATE void ParseBlock( void );
@@ -83,7 +81,6 @@ PRIVATE void ParseWriteStatement( void );
 /*        "ParseProgram" to start the parse.                                */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-
 PUBLIC int main ( int argc, char *argv[] )
 {
     if ( OpenFiles( argc, argv ) )  {

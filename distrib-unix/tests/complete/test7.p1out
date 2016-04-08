@@ -1,0 +1,14 @@
+  1 PROGRAM p7;
+  2   PROCEDURE y;
+  3     VAR y1;
+  4       PROCEDURE z;
+  5         BEGIN
+  6           y1 := 20;
+  7           z;
+  8         END;
+  9     BEGIN
+ 10       z;
+ 11     END;
+ 12   BEGIN
+ 13     y;
+ 14   END.

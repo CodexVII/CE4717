@@ -1,0 +1,11 @@
+  1 PROGRAM SimpleProc;
+  2 VAR g1;
+  3 
+  4 PROCEDURE y;
+  5   BEGIN
+  6     WRITE(g1 + 20);
+  7   END;
+  8 BEGIN
+  9   g1 := 100;
+ 10   y;
+ 11 END.

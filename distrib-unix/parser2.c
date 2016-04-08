@@ -14,20 +14,12 @@
 /*       which allows it to keep parsing finding more errors if they        */
 /*       exist                                                              */
 /*                                                                          */
+/*       Error recovery with S-Algol and Pascal                             */
+/*                                                                          */
+/*       At EBNF points of the grammar, allow re-synchronization to happen. */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 
-/*
-  Error recovery with S-Algol and Pascal
-
-  repition operator
-  imbalance between BEGIN and END
-
-  At EBNF points of the grammar, allow re-synchronization to happen
-  at entry and exit points
-
-  Work out SetupSets
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,15 +36,12 @@
 
 PRIVATE FILE *InputFile;           /*  CPL source comes from here.          */
 PRIVATE FILE *ListFile;            /*  For nicely-formatted syntax errors.  */
-
 PRIVATE TOKEN  CurrentToken;       /*  Parser lookahead token.  Updated by  */
                                    /*  routine Accept (below).  Must be     */
                                    /*  initialised before parser starts.    */
-
 PRIVATE int ParseStatus;	   /*  Used for displaying the approriate   */
 				   /*  message once parsing is complete     */
                                    /*  1 = Invalid, 0 = Valid */
-
 PRIVATE SET DeclarationsFS_aug;    /*  SET structs used to contain sets     */
 PRIVATE SET DeclarationsFBS;	   /*  needed to move from crash and burn   */
 PRIVATE SET ProcDeclarationFS_aug; /*  parsing to error recovery            */
@@ -72,7 +61,6 @@ PRIVATE void ParseProgram( void );
 PRIVATE void ParseStatement( void );
 PRIVATE void ParseExpression( void );
 PRIVATE void Accept( int code );
-
 PRIVATE void ParseDeclarations( void );
 PRIVATE void ParseProcDeclaration( void );
 PRIVATE void ParseBlock( void );
@@ -104,7 +92,6 @@ PRIVATE void SetupSets( void );
 /*        "ParseProgram" to start the parse.                                */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-
 PUBLIC int main ( int argc, char *argv[] )
 {
     if ( OpenFiles( argc, argv ) )  {
@@ -377,7 +364,7 @@ PRIVATE void ParseDeclarations( void )
 /*    ParseStatement implements                                             */
 /*                                                                          */
 /*      <Statement>  :== <SimpleStatement> | <WhileStatement> |             */
-/*                       <IfStatement> | <ReadStatement> | <riteStatement>  */
+/*                       <IfStatement> | <ReadStatement> | <WriteStatement> */
 /*                                                                          */
 /*    Inputs:       None                                                    */
 /*                                                                          */

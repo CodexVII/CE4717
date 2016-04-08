@@ -1,0 +1,5 @@
+PROGRAM default;
+VAR x;
+BEGIN
+   x :=1;
+END.

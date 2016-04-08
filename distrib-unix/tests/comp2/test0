@@ -1,0 +1,63 @@
+  0  Inc   3   
+  1  Br    40  
+  2  Inc   2   
+  3  Load  FP-2  
+  4  Load  #2   
+  5  Sub
+  6  Bg    11  
+  7  Load  #1   
+  8  Load  FP-1  
+  9  Store [SP]
+ 10  Br    38  
+ 11  Load  FP-2  
+ 12  Load  #1   
+ 13  Sub
+ 14  Push  FP
+ 15  Load  #3   
+ 16  Add
+ 17  Load  FP
+ 18  Bsf
+ 19  Call  2   
+ 20  Rsf
+ 21  Dec   2   
+ 22  Load  FP-2  
+ 23  Load  #2   
+ 24  Sub
+ 25  Push  FP
+ 26  Load  #4   
+ 27  Add
+ 28  Load  FP
+ 29  Bsf
+ 30  Call  2   
+ 31  Rsf
+ 32  Dec   2   
+ 33  Load  FP+3   
+ 34  Load  FP+4   
+ 35  Add
+ 36  Load  FP-1  
+ 37  Store [SP]
+ 38  Dec   2   
+ 39  Ret
+ 40  Read
+ 41  Store 1   
+ 42  Load  #1   
+ 43  Store 0   
+ 44  Load  0   
+ 45  Load  1   
+ 46  Sub
+ 47  Bg    62  
+ 48  Load  0   
+ 49  Load  #2   
+ 50  Push  FP
+ 51  Bsf
+ 52  Call  2   
+ 53  Rsf
+ 54  Dec   2   
+ 55  Load  2   
+ 56  Write
+ 57  Load  0   
+ 58  Load  #1   
+ 59  Add
+ 60  Store 0   
+ 61  Br    44  
+ 62  Halt

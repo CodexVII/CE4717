@@ -1,0 +1,14 @@
+  0  Inc   1   
+  1  Br    7   
+  2  Load  0   
+  3  Load  #20  
+  4  Add
+  5  Write
+  6  Ret
+  7  Load  #100 
+  8  Store 0   
+  9  Push  FP
+ 10  Bsf
+ 11  Call  2   
+ 12  Rsf
+ 13  Halt

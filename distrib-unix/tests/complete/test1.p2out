@@ -1,0 +1,5 @@
+  1 PROGRAM default;
+  2 VAR x;
+  3 BEGIN
+  4    x :=1;
+  5 END.

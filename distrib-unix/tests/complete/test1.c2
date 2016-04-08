@@ -1,0 +1,4 @@
+  0  Inc   1   
+  1  Load  #1   
+  2  Store 0   
+  3  Halt

@@ -1,0 +1,36 @@
+#! /bin/bash
+# This script will run all tests that are assumed to
+# be working. It will also keep track of the ones that failed
+# and open it.
+
+# compile all programs
+make parser1
+make parser2
+make comp1
+make comp2
+
+test_path="tests/complete";
+test_count=$(ls ./tests/complete | grep ".cpl$" | wc -l);
+result="";
+
+comp2_result=();
+
+for i in $(seq 1 $(($test_count-1)));
+do
+  result=$(./parser1 $test_path/test$i.cpl $test_path/test$i.p1out);
+  
+  if [ "$result" != valid ]; then
+      echo "Test[$i] Failed: Parser1"
+  fi
+
+  result=$(./parser2 $test_path/test$i.cpl $test_path/test$i.p2out);
+  if [ "$result" != valid ]; then
+      echo "Test[$i] Failed: Parser2"
+  fi
+  
+  result=$(./comp2 $test_path/test$i.cpl $test_path/test$i.c2out $test_path/test$i.c2);
+  if [ "$result" != valid ]; then
+      comp2_result+=($i);
+      emacs $test_path/test$i.cpl&
+  fi
+done

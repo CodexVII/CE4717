@@ -1,0 +1,14 @@
+PROGRAM p3;
+  VAR v1, v2;
+  PROCEDURE y;
+    VAR v1, v2;
+    BEGIN
+      v1 := 100;
+      v2 := 20;
+      WRITE( v1 - v2 );
+    END;
+  BEGIN
+    v1 := 870;
+    v2 := 420;	    
+    y;
+  END.

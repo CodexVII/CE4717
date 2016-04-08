@@ -1,0 +1,19 @@
+  1 PROGRAM IfTest;
+  2 VAR y, x;
+  3 
+  4 BEGIN
+  5   y := 20;
+  6   IF y > 5 THEN
+  7     BEGIN
+  8       y := y + 5;
+  9     END
+ 10   ELSE
+ 11     BEGIN
+ 12       y := -3;
+ 13     END;
+ 14 
+ 15   IF x < 5 THEN
+ 16     BEGIN
+ 17       x := 20;
+ 18     END;
+ 19 END.
