@@ -1,0 +1,3 @@
+<sentence> --> <join>{"or"<join>};
+<join> --> <letter>{"and"<letter>};
+<letter> --> "a";

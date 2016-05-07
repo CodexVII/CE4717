@@ -9,29 +9,26 @@
 !   A good test of the full compiler comp2.
 !
 PROGRAM fibv1;
-  VAR n, fibN;
+  VAR n, nMax, fibN;
 
   PROCEDURE fib(n, REF acc);
     VAR fm1, fm2;
     BEGIN
-      IF n = 0 THEN BEGIN 
-      	 acc := 0;  
-      END
+      IF n <= 2 THEN BEGIN acc := 1; END
       ELSE BEGIN
-        IF n = 1 THEN BEGIN
-	   acc := 1;
-	END
-        ELSE BEGIN
-	   fib(n-1,fm1);
-	   fib(n-2,fm2);
-           acc := fm1 + fm2;
-	END;
+        fib(n-1,fm1);
+	fib(n-2,fm2);
+        acc := fm1 + fm2;
       END;
     END;
 
   ! Main program starts here.
   BEGIN
-    READ(n);      ! Read max value of n
-    fib(n, fibN);
-    WRITE(fibN);
+    READ(nMax);      ! Read max value of n
+    n := 1;          ! Write out the first n Fibonacci numbers
+    WHILE n <= nMax DO BEGIN
+      fib(n, fibN);    
+      WRITE(fibN);
+      n := n + 1;
+    END;
   END.

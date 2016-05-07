@@ -1,0 +1,12 @@
+<E> --> <T><RestE>;
+<RestE> --> <Sign><T><RestE>;
+<RestE> --> \eps;
+<Op1> --> "+";
+<Op2> --> "-";
+<T> --> <F><RestT>;
+<RestT> --> <Op2><F><RestT>;
+<RestT> --> \eps;
+<F> --> "-" <S>
+<F> --> <S>
+<S> --> "v"
+<S> --> "(" <E> ")";

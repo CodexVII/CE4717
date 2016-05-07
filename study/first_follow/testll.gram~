@@ -1,0 +1,7 @@
+S -> B A;
+A -> a B A;
+A -> \eps;
+C -> E C;
+C -> c E C;
+E -> e S f;
+E -> g;

@@ -1,10 +1,37 @@
-  1 PROGRAM NegTest;
-  2 VAR a;
-  3   PROCEDURE Negate(x);
-  4     BEGIN   
-  5       WRITE(-x);
-  6     END;
-  7   BEGIN 
-  8     READ(a);
-  9     Negate(a);
- 10   END.
+  1 !
+  2 !   fibv1.prog 
+  3 !
+  4 !   Fibonacci calculation using recursion.
+  5 !   Note the use of local variables being
+  6 !   passed to the recursions as reference
+  7 !   parameters.
+  8 !
+  9 !   A good test of the full compiler comp2.
+ 10 !
+ 11 PROGRAM fibv1;
+ 12   VAR n, fibN;
+ 13 
+ 14   PROCEDURE fib(n, REF acc);
+ 15     VAR fm1, fm2;
+ 16     BEGIN
+ 17       IF n = 0 THEN BEGIN 
+ 18          acc := 0;  
+ 19       END
+ 20       ELSE BEGIN
+ 21         IF n = 1 THEN BEGIN
+ 22            acc := 1;
+ 23         END
+ 24         ELSE BEGIN
+ 25            fib(n-1,fm1);
+ 26            fib(n-2,fm2);
+ 27            acc := fm1 + fm2;
+ 28         END;
+ 29       END;
+ 30     END;
+ 31 
+ 32   ! Main program starts here.
+ 33   BEGIN
+ 34     READ(n);      ! Read max value of n
+ 35     fib(n, fibN);
+ 36     WRITE(fibN);
+ 37   END.

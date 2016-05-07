@@ -1,0 +1,74 @@
+<h2 style="color: red;">
+	<span style="color: red;">CE4717 Compiler Project</span></h2>
+<p>
+	There are several different ways to set up the compiler project software. &nbsp;You can either:</p>
+<ol>
+	<li>
+		Use a pre-built virtual machine containing all the project software set up and ready to go, or;<br />
+		&nbsp;</li>
+	<li>
+		Download a source distribution of the project software and set it up to run from the command-line, or set it up to use NetBeans or Emacs as an IDE.</li>
+</ol>
+<h3>
+	1. &nbsp;Virtual Machine</h3>
+<p>
+	One way to run the compiler project software is by downloading a virtual machine and running that using the VirtualBox virtualization software. &nbsp;The disk image is available in the shared folder <b><span style="color: rgb(51, 153, 102);">\\ECE-COMMS\CE4717</span></b>. The file you want is <b><span style="color: rgb(153, 204, 0);">ce4717-lubuntu.ova</span></b>, which is a VirtualBox transportable disk image. Download this to your laptop, start up VirtualBox and import this file. This will create a virtual machine <span style="font-family: Arial; color: rgb(255, 0, 0);">ce4717-lubuntu</span> in the VirtualBox Manager window, just click on this to start it up.</p>
+<p>
+	You can now delete <b><span style="color: rgb(153, 204, 0);">ce4717-lubuntu.ova</span></b>, as you won&#39;t need it again. All the module software is preloaded into this VirtualBox image, and an IDE (QtCreator) project is set up.</p>
+<p>
+	Log in as <b><span style="color: rgb(153, 51, 102);">ce4717user</span></b>, password <b><span style="color: rgb(153, 51, 102);">ce4717user</span></b>. If you need superuser access to the virtual machine (to, for example, upgrade the VirtualBox Guest Additions), log in as <b><span style="color: rgb(153, 51, 102);">vbuser</span></b>, password <b><span style="color: rgb(153, 51, 102);">vbuser</span></b>.</p>
+<p>
+	This approach is self-contained (everything is set up for you), but has the disadvantage that the disk image for the virtual machine which you have to download and import into VirtualBox is very large (about 5GBytes). &nbsp;THis can make the download step very slow.</p>
+<h3>
+	2. &nbsp;Source Distribution</h3>
+<p>
+	This has the big advantage that it is very small (81kbytes). &nbsp;However, you do have to do some setup yourself. &nbsp;The amount of work varies according to whether you are using a Linux machine to run the software, or a Windows machine. &nbsp;Things are easier on Linux.</p>
+<h4>
+	Linux Setup for the source distribution</h4>
+<p>
+	A source tree for the compiler software distribution is in file <b><span style="color: rgb(153, 204, 0);">distrib-unix.zip</span></b>. &nbsp;Download this to your disk and unzip it.</p>
+<p>
+	The source tree contains targets to build the library for the project (&quot;make libcomp.a&quot;) and the text-based compiler target machine simulator (&quot;make sim&quot;). There are also targets for the four parts of the project (&quot;make parser1&quot;, &quot;make parser2&quot;, &quot;make comp1&quot; and &quot;make comp2&quot;). &nbsp;As it stands, this is ready to go if you are ready to work from the command-shell, and happy to use an external editor like vim. &nbsp;You will have to ensure that you have a modern C-compiler (any recent gcc will work) and a modern version of make. &nbsp;</p>
+<p>
+	You can also use either Emacs or NetBeans as an IDE. &nbsp;Using Emacs is simple. &nbsp;Charge directory to where you have unpacked the software. &nbsp;Start Emacs and load up a source file (say &quot;<strong>simpleparser.c</strong>&quot;). &nbsp;Choose menu-option <strong><span style="color:#008080;">Tools -&gt; Compile </span></strong>and make sure the command-buffer contains the string <strong><span style="color:#0000cd;">make smallparser</span></strong>&nbsp;(it will come up by default with the string <strong><span style="color:#0000cd;">make -k</span></strong>. &nbsp;Edit this to reflect the command <span style="color:#0000cd;"><strong>make smallparser</strong></span>) and press the Enter key. &nbsp;That&#39;s it. &nbsp;The project will build, and you will end up with an executable program called <span style="color:#008000;">smallparser</span> in the distribution directory. &nbsp;Do this same for the real targets, parser1, parser2, comp1 and comp2.</p>
+<p>
+	If you prefer to work within NetBeans, simply create a new NetBeans project using the option to &quot;Create a C/C++ project from existing sources&quot;. &nbsp;This will create a NetBeans configuration called &quot;default&quot; which compiles the library. &nbsp;Add configurations for the &quot;smallparser&quot;, &quot;parser2, &quot;parser2&quot;, etc, targets by duplicating and renaming the default configuration, and changing the &quot;make&quot; command for each one (so the &quot;smallparser&quot; configuration will contain a &quot;make command&quot; looking like<span style="color:#008080;"><strong> make -f Makefile smallparser</strong></span>). &nbsp;Note that you need a recent version of NetBeans (8.0.1) and it has to have the C/C++ plugin installed.</p>
+<h4>
+	Windows setup for the source distribution</h4>
+<p>
+	The project software is designed to run on a Unix-like operating system like Linux or Mac OS/X. &nbsp;It doesn&#39;t build easily using Visual Studio because this Microsoft compiler isn&#39;t a good citizen, it doesn&#39;t compile ANSI standard C89 properly. &nbsp;So, if you want to use a Windows box to work on the project, you can, but you must use the Cygwin software.</p>
+<p>
+	Cygwin is a system that attempts to provide a Unix-like operating environment on Windows. &nbsp;You can get it from http://www.cygwin.com/. &nbsp;Download one of the setup programs (setup-x86.exe or setup-x86_64.exe). &nbsp;Choose the former if you have a 32-bit system runnng 32-bit Windows, the latter if you have a 64-bit system and 64-bit Windows.</p>
+<p>
+	Run the setup and install at least the following packages:</p>
+<ul>
+	<li>
+		unzip</li>
+	<li>
+		emacs-w32</li>
+	<li>
+		gcc-core</li>
+	<li>
+		make</li>
+</ul>
+<p>
+	These, along with the default programs, will provide you with an environment in which the source distribution in <strong>distrib-unix.zip</strong> can be compiled. &nbsp;When the installation is complete, tick the check boxes to create an icon and an entry in the programs list.</p>
+<p>
+	Now start the cygwin shell and follow the instructions above for setting up the Linux distribution. &nbsp;Note that the Cygwin shell attempts to duplicate a Unix filesystem, you can see familiar parts of the Windows file system by using the notation &quot;/cygdrive/&lt;disk-letter&gt;/&lt;path&gt;. &nbsp;E.g., to list the contents of C:\, type at the prompt</p>
+<p>
+	<span style="color:#000080;"><strong>ls /cygdrive/c</strong></span></p>
+<p>
+	&nbsp;</p>
+<h3 style="color: red;">
+	Other files</h3>
+<p>
+	The file <span style="color: rgb(255, 0, 0);"><b>grammar.pdf</b></span> is the grammar for the simple computer language (CPL) to be implemented in the project.</p>
+<p>
+	The file <span style="color: rgb(255, 0, 0);"><b>simGUIdist.zip</b></span> is a distribution of a graphical simulator for the virtual machine targeted by the compiler project. Unzip this somewhere convenient and run with <span style="color: rgb(255, 0, 255);"><b>simgui</b></span>. Note that this software needs a Java Runtime Environment (JRE) on your machine. &nbsp;If you are running NetBeans, you will have one of these by default.</p>
+<p>
+	<span style="color: rgb(255, 0, 0);"><b>sim_win32.zip</b></span> is an archive containing a pre-compiled version of the command-line simulator for the compiler&#39;s virtual machine, &quot;sim.exe&quot;. This is a win32 executable suitable for Windows XP and 7. (N.B., users of the Linux distribution can build this for themselves by downloading <b><span style="color: rgb(153, 204, 0);">distrib-unix.zip</span></b>, unpacking it, then issuing the &quot;make sim&quot; command from a shell prompt within the distribution directory.)</p>
+<p>
+	The file <span style="color:#ff0000;"><strong>fibv1.prog</strong></span> is a Fibonacci-number generator program written in the Compiler Project Language (CPL). &nbsp;This is a real program, and your final compiler (comp2.c) should be able to compile it and generate assembly code output from it that can be assembled and run using one of the simulators (either sim or simGUI). &nbsp;It is also a very good test of your initial parser (parser1.c), as it exercises most of the project language. &nbsp;Don&#39;t try to use it as a test for comp1.c, the initial compiler.</p>
+<p>
+	<link href="/library/skin/tool_base.css" media="all" rel="stylesheet" type="text/css" />
+</p>

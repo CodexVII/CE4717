@@ -1,0 +1,12 @@
+PROGRAM proc;
+VAR x;
+
+PROCEDURE y;
+  BEGIN
+    WRITE(x);
+  END;
+
+BEGIN
+  x := 20;
+  y;
+END.

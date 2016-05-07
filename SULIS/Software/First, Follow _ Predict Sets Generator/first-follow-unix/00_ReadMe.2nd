@@ -1,0 +1,175 @@
+"ff" is a program which automatically generates the First, Follow and
+Predict sets of a grammar which you supply to it. The program also checks
+to see if the Predict sets of the grammar meet the LL(1) criterion and 
+reports on whether the grammar is LL(1) or not.
+
+Use:
+	$ ff < input.grammar > output.data
+
+"input.grammar" is a text file containing the grammar definition in
+(E)BNF form. "output.data" is a text file containing an "expanded"
+grammar (converted from EBNF to BNF if necessary), plus the First and
+Follow sets of all nonterminals in the grammar and the First and Predict 
+sets of all the (expanded) productions in the grammar. 
+
+The "ff" program also checks to see if your grammar is reduced. If not,
+it reports on any useless productions, and proceeds to work with that
+part of the grammar you specify which is reduced. If you get warnings
+about useless productions, it is a good idea to check for misspellings.
+
+The "ff" program reads from standard input and writes to standard
+output. By default, standard input is the keyboard and standard output 
+is the screen. Note the use of I/O redirection in the above to read and 
+write to files.
+
+The input format accepted by the "ff" program is fairly flexible,
+accepting either simple mathematical grammar descriptions or full BNF/EBNF
+descriptions (or, in fact, any mixture of both). In one respect,
+however, the grammar definitions which "ff" accepts differ from common
+conventions; you must terminate each production with a semicolon. This
+is because the input to "ff" is free-format, (allowing large productions
+to span multiple input lines), so "ff" needs an unambiguous marker to
+tell it where each production of the grammar terminates.
+
+Here is a simple example of an "ff" grammar. This is of the simple
+mathematical sort:
+
+A -> a A ;
+A -> a;
+
+The output generated from this by "ff" looks like the following:
+
+ 1  A --> a A 
+ 2  A --> a 
+First Sets
+(1)		{ a }
+(2)		{ a }
+First Sets of nonterminals
+A  { a }
+Follow Sets
+A  { $ }
+Predict Sets
+(1)		{ a }
+(2)		{ a }
+LL1 predict conflict
+    predict sets (1) (2) in conflict
+    intersection set { a }
+Grammar is not LL1
+
+Here is an example of an EBNF grammar input to "ff":
+
+<expression> :== <term> { <addop> <term> } ;
+<term>       :== <factor> { <multop> <factor> } ;
+<factor>     :== "(" <expression> ")" | <number> ;
+<number>     :== "INTCONST" ;
+<addop>      :== "+" | "-" ;
+<multop>     :== "*" | "/" ;
+
+And this is what "ff" generates when given the above as input:
+
+ 1  <expression> --> <term> <I0001> 
+ 2  <I0001> --> \eps 
+ 3  <I0001> --> <addop> <term> <I0001> 
+ 4  <term> --> <factor> <I0003> 
+ 5  <I0003> --> \eps 
+ 6  <I0003> --> <multop> <factor> <I0003> 
+ 7  <factor> --> "(" <expression> ")" 
+ 8  <factor> --> <number> 
+ 9  <number> --> "INTCONST" 
+10  <addop> --> "+" 
+11  <addop> --> "-" 
+12  <multop> --> "*" 
+13  <multop> --> "/" 
+First Sets
+(1)		{ "(", "INTCONST" }
+(2)		{ \eps }
+(3)		{ "+", "-" }
+(4)		{ "(", "INTCONST" }
+(5)		{ \eps }
+(6)		{ "*", "/" }
+(7)		{ "(" }
+(8)		{ "INTCONST" }
+(9)		{ "INTCONST" }
+(10)		{ "+" }
+(11)		{ "-" }
+(12)		{ "*" }
+(13)		{ "/" }
+First Sets of nonterminals
+<expression>  { "(", "INTCONST" }
+<I0001>  { \eps, "+", "-" }
+<term>  { "(", "INTCONST" }
+<I0003>  { \eps, "*", "/" }
+<factor>  { "(", "INTCONST" }
+<number>  { "INTCONST" }
+<addop>  { "+", "-" }
+<multop>  { "*", "/" }
+Follow Sets
+<expression>  { $, ")" }
+<I0001>  { $, ")" }
+<term>  { "+", "-", $, ")" }
+<I0003>  { "+", "-", $, ")" }
+<factor>  { "*", "/", "+", "-", $, ")" }
+<number>  { "*", "/", "+", "-", $, ")" }
+<addop>  { "(", "INTCONST" }
+<multop>  { "(", "INTCONST" }
+Predict Sets
+(1)		{ "(", "INTCONST" }
+(2)		{ $, ")" }
+(3)		{ "+", "-" }
+(4)		{ "(", "INTCONST" }
+(5)		{ "+", "-", $, ")" }
+(6)		{ "*", "/" }
+(7)		{ "(" }
+(8)		{ "INTCONST" }
+(9)		{ "INTCONST" }
+(10)		{ "+" }
+(11)		{ "-" }
+(12)		{ "*" }
+(13)		{ "/" }
+Grammar is LL1
+
+There are several points to note in the above. First of all, "ff" has
+converted the input EBNF to BNF in the "expanded" grammar. In order to
+do this, it has generated "Internal" nonterminals like <I0001>. Another
+point is how null productions are indicated. The Greek letter "epsilon"
+is not available in plain ASCII, so the "escape" sequence "\eps" is
+used instead in several of the productions. "\eps" may be used in a
+grammar given as input to "ff" as well:
+
+A -> A a;
+A -> \eps;
+
+Simple mathematical grammars represent terminals by single lowercase
+letters and nonterminals by single uppercase letters. In (E)BNF grammar
+notation, a terminal is any sequence of printable ASCII enclosed in
+angle-brackets, and a nonterminal is any sequence of printable ASCII
+enclosed in double quotes.
+
+The error-handling employed by "ff" is a bit primitive. If it
+encounters an error in the input (bad grammar definition), it
+immediately reports this and exits. Hence, "ff" is an example of a
+"crash and burn" system.
+
+Here is a grammar defining the syntax of grammars which may be input to
+"ff". This grammar is itself in "ff" format!
+
+<grammar>        :== <production> ";" { <production> ";" } ;
+<production>     :== <nonterminal> <produces> <righthandside> ;
+<righthandside>  :== <productionlist> { "|" <productionlist> } ;
+<productionlist> :== <nullstring> | ( <symbol> { <symbol> } ) ;
+<symbol>         :== <nonterminal> | <terminal> |
+                     "[" <righthandside> "]" |
+                     "(" <righthandside> ")" |
+                     "{" <righthandside> "}" ;
+<nonterminal>    :== "An uppercase letter" ;
+<nonterminal>    :== "A printable ASCII string enclosed in angle-brackets" ;
+<terminal>       :== "A lowercase letter" ;
+<terminal>       :== "A printable ASCII string enclosed in quotes" ; 
+<produces>       :== "->" | "-->" | ":==" ;
+<nullstring>     :== "\eps" | "\epsilon" | "\lambda" ;
+
+A few simplifications have been made to the syntax of grammars accepted
+by "ff" in the above. Rather than tediously enumerate all the possible
+options for <nonterminal> and <terminal>, I have chosen to write some
+"pseudo-terminals" here. They are meant to represent things like
+<Hello>, <Useless-Production>, A, "INTCONST", etc.

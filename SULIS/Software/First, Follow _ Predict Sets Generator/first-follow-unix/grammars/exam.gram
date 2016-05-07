@@ -1,0 +1,5 @@
+S -> BA ;
+A -> aBA|\eps ;
+B -> DC ;
+C -> cDC|\eps ;
+D -> eSf|g ;

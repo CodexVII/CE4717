@@ -1,0 +1,34 @@
+Building under Linux/Unix
+-------------------------
+
+(1) Easier method: Using make.
+
+    $ cd sources
+    $ make ff
+
+
+(2) Doing it by hand.
+
+    $ cd sources
+    $ lex -o scanner.c scanner.l    (Use flex to build the scanner.)
+    $ gcc -o ff *.c -lfl            (Compile everything. "-lfl" is the 
+                                     flex link library.)
+
+
+If this all goes well, you will be left with an executable called "ff"
+in the sources directory.  Run "make clean" to clean up the build
+and copy/move "ff" to where you like (/usr/local/bin, for example).
+
+Some example grammars are in the subdirectory "grammars", including 
+the complete grammar for the compiler project language CPL.
+
+N.B. You will probably get a build warning about "'yyinput' defined but
+not used" in scanner.c.  You can ignore this: scanner.c is a C
+source file built by flex (from scanner.l), and flex's C output 
+assumes you may need to access "yyinput", but we don't.
+
+If you need to convert the system to use lex instead of flex, change the 
+definition of "yytext" in "ff.h" to "extern char yytext[]" instead of
+"extern char *yytext".  This is not likely to be needed, however, as
+flex rather than lex is not the unix/linux default scanner generator.
+

@@ -1,0 +1,6 @@
+<expression> :== <term> { <addop> <term> } ;
+<term>       :== <factor> { <multop> <factor> } ;
+<factor>     :== "(" <expression> ")" | <number> ;
+<number>     :== "INTCONST" ;
+<addop>      :== "+" | "-" ;
+<multop>     :== "*" | "/" ;

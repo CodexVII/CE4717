@@ -1,0 +1,10 @@
+T --> E A;
+A --> "not" E A;
+A --> "and" E A;
+A --> \eps;
+U --> F B;
+B --> "true" F B;
+B --> "false" F B;
+B --> "or" F B;
+B --> \eps;
+V --> "(" T ")";

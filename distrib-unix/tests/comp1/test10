@@ -1,0 +1,7 @@
+  0  Inc   1   
+  1  Load  0   
+  2  Write
+  3  Load  #20  
+  4  Store 0   
+  5  Call  -1  
+  6  Halt

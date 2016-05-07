@@ -1,0 +1,36 @@
+ 1  <sentence> --> <join> <I0001> 
+ 2  <I0001> --> \eps 
+ 3  <I0001> --> "or" <join> <I0001> 
+ 4  <join> --> <letter> <I0003> 
+ 5  <I0003> --> \eps 
+ 6  <I0003> --> "and" <letter> <I0003> 
+ 7  <letter> --> "a" 
+First Sets
+(1)		{ "a" }
+(2)		{ \eps }
+(3)		{ "or" }
+(4)		{ "a" }
+(5)		{ \eps }
+(6)		{ "and" }
+(7)		{ "a" }
+First Sets of nonterminals
+<sentence>  { "a" }
+<I0001>  { \eps, "or" }
+<join>  { "a" }
+<I0003>  { \eps, "and" }
+<letter>  { "a" }
+Follow Sets
+<sentence>  { $ }
+<I0001>  { $ }
+<join>  { "or", $ }
+<I0003>  { "or", $ }
+<letter>  { "and", "or", $ }
+Predict Sets
+(1)		{ "a" }
+(2)		{ $ }
+(3)		{ "or" }
+(4)		{ "a" }
+(5)		{ "or", $ }
+(6)		{ "and" }
+(7)		{ "a" }
+Grammar is LL1

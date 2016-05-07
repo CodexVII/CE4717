@@ -1,0 +1,55 @@
+Some example Lex/Flex scanning programs as per the
+lecture notes.  In general, build with 
+
+	$ flex  <name>.l
+	$ gcc -o <name> lex.yy.c -lfl
+
+	where <name> is the desired executable name.
+
+---------------------------------------------------------------------
+
+Scanning Programs:
+------------------
+
+comment.l:	A program to scan C comments and 
+                other tokens (identifier, integer constant).
+		Uses the very complex RE for a C comment.
+
+comment2.l:	A C-comment scanner that uses Lex/Flex just
+		to find the first two characters of the
+		comment, then uses a special-purpose C
+		scanner embedded in the action to recognise
+		the rest of the comment.  This is much more
+		like what a procudion C-scanner would use to
+		recognise and drop comments.
+
+dtof.l:		"double" to "float" converter as per notes.
+
+dtof2.l:	A version of the double-float converter that
+		doesn't require the flex library (no -lfl
+		needed in the gcc step).
+
+scanner.l:	A Lex/Flex scanner for the Compiler Project
+		Language (CPL).
+
+scanner2.l:	A version of scanner.l which has been modified
+		to read its input from a file using freopen.
+		This is a standard trick in production Lex
+		scanners.
+
+testclass.l:	Small scanner designed to test the behaviour
+		of "special" characters within a character
+		class, demonstrating that they loose their
+		special meanings within the class.
+
+---------------------------------------------------------------------
+
+Other files:
+------------
+
+dtof-test-input.c/dtof-test-output.c:  Sample input to and expected
+		output from the dtof programs.
+
+scanner-example.in:  Sample input for the scanner programs.
+
+---------------------------------------------------------------------

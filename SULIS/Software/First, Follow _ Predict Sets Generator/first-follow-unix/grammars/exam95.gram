@@ -1,0 +1,3 @@
+<Expression> :== <Term> { "+" <Term> } ;
+<Term>       :== <Factor> { "x" <Factor> } ;
+<Factor>     :== "(" <Expression> ")" | "0" | "1" ;

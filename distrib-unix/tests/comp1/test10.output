@@ -1,0 +1,12 @@
+  1 PROGRAM proc;
+  2 VAR x;
+  3 
+  4 PROCEDURE y;
+  5   BEGIN
+  6     WRITE(x);
+  7   END;
+  8 
+  9 BEGIN
+ 10   x := 20;
+ 11   y;
+ 12 END.

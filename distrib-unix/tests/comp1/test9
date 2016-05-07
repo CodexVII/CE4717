@@ -1,0 +1,18 @@
+  0  Inc   3   
+  1  Read
+  2  Store 0   
+  3  Read
+  4  Store 1   
+  5  Read
+  6  Store 2   
+  7  Load  0   
+  8  Load  1   
+  9  Add
+ 10  Write
+ 11  Load  1   
+ 12  Load  #2   
+ 13  Div
+ 14  Write
+ 15  Load  2   
+ 16  Write
+ 17  Halt

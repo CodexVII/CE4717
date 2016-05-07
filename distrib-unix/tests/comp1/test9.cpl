@@ -1,0 +1,7 @@
+PROGRAM readWrite;
+VAR x, y, z;
+
+BEGIN
+  READ(x, y, z);
+  WRITE(x + y, y/2, z);
+END.

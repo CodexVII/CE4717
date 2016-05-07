@@ -1,0 +1,32 @@
+NFA
+States: 13
+Start state: 0
+Non-Thompson NFA
+  Accepting state:  3  'ab'
+  Accepting state:  7  'a(a|b)*'
+State 0
+    (eps) --> 1
+    (eps) --> 4
+State 1
+    (a) --> 2
+State 2
+    (b) --> 3
+State 4
+    (a) --> 5
+State 5
+    (eps) --> 6
+    (eps) --> 7
+State 6
+    (eps) --> 8
+    (eps) --> 9
+State 8
+    (a) --> 10
+State 9
+    (b) --> 11
+State 10
+    (eps) --> 12
+State 11
+    (eps) --> 12
+State 12
+    (eps) --> 7
+    (eps) --> 6

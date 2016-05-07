@@ -1,0 +1,9 @@
+PROGRAM test;
+VAR x, y;
+    PROCEDURE p(a, REF b);
+    BEGIN
+        b := a*2;
+    END;
+BEGIN
+    READ(x); p(x,y); WRITE(x);
+END.
